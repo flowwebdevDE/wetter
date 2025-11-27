@@ -48,12 +48,14 @@ header {
     /* sichtbar, nur wenn gebraucht */
     padding: 5px;
     margin-top: 40px;
+    margin-bottom: 10px;
     background: white;
     border-radius: 12px;
     width: 48px;
     height: 48px;
     object-fit: contain;
     margin-right: 12px;
+    box-shadow: 0 6px 18px rgb(0, 0, 0);
 }
 
 /* Header-Title */
@@ -80,9 +82,8 @@ main {
     width: 100%;
     background: rgba(0, 0, 255, 0.45);
     border: none;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
     padding: 12px;
-    margin-top: 52px;
+    margin-top: 10px;
     color: white;
     font-weight: 700;
     font-size: 1rem;
@@ -100,7 +101,6 @@ main {
     border: none;
     color: white;
     background: rgba(0, 0, 0, 0.165);
-    box-shadow: 0 4px 10px rgb(0, 0, 0);
     outline: none;
 }
 
@@ -162,10 +162,14 @@ main {
 .icon,
 .icon svg {
     /* sowohl container als auch svg ansprechen */
-    width: 48px;
-    height: 48px;
+    width: 68px;
+    height: 68px;
     display: block;
     margin: 8px auto;
+}
+
+#icon {
+    display: none;
 }
 
 /* Offline Hinweis */
