@@ -6,10 +6,8 @@ html,body { height:100%; margin:0; }
 body {
   font-family: system-ui, Arial, sans-serif;
   margin: 0;
-  padding-top: 100px;                 /* Platz für fixed header */
-  background: #1976d2;
-  background-repeat: no-repeat;
-  background-size: cover;
+  padding-top: 80px;                 /* Platz für fixed header */
+  background: linear-gradient(90deg, #1976d2, #5178a0);
   -webkit-font-smoothing:antialiased;
   color: #111;
 }
@@ -21,7 +19,7 @@ header {
   left: 0;
   right: 0;
   padding-top: 50px;
-  height: 118px;                      /* feste Höhe -> zuverlässig */
+  height: 98px;                      /* feste Höhe -> zuverlässig */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -163,3 +161,22 @@ main {
   margin-top: 12px;
   font-weight: 700;
 }
+
+#hourlyForecastGrid {
+    display: flex;             /* Nebeneinander anordnen */
+    overflow-x: auto;          /* Horizontal scrollbar */
+    gap: 10px;                 /* Abstand zwischen Stunden */
+    padding: 5px;
+    color: black;
+}
+
+.hour {
+    min-width: 100px;          /* Breite jeder Stunde */
+    text-align: center;
+    padding: 8px;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    background: #fafafa;
+    flex-shrink: 0;            /* Verhindert Zusammenziehen */
+}
+

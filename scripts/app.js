@@ -102,10 +102,16 @@ function render(data, lat, lon, label) {
       <div>${data.daily.precipitation_sum[i]} mm</div>`;
         grid.appendChild(day);
     }
+    
+    renderCharts(lat, lon);
+    renderDailyOverview(lat, lon); // <-- Tagesübersicht
 }
 
+
 // initial
-loadWeather(48.7788629, 9.1776988, 'Stuttgart');
+navigator.geolocation.getCurrentPosition(p => {
+        loadWeather(p.coords.latitude, p.coords.longitude, "Mein Standort");
+    }, () => alert("Standort nicht erlaubt"));
 
 // --- PWA Install ---
 let deferredPrompt;
