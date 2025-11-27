@@ -89,7 +89,7 @@ main {
     font-size: 1rem;
     border-radius: 14px;
     cursor: pointer;
-    margin-bottom: 12px;
+    margin-bottom: 0;
 }
 
 /* Suchbox nutzt die Elternbreite (vermeidet vw-Overflows) */
@@ -100,7 +100,7 @@ main {
     border-radius: 12px;
     border: none;
     color: white;
-    background: rgba(0, 0, 0, 0.165);
+    background: rgba(0, 0, 255, 0.173);
     outline: none;
 }
 
