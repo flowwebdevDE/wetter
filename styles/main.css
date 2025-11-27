@@ -18,6 +18,7 @@ body {
     background: linear-gradient(90deg, #1976d2, #5178a0);
     -webkit-font-smoothing: antialiased;
     color: #111;
+    text-shadow: 0 4px 10px rgb(0, 0, 0);
 }
 
 /* Fixed Header - feste Höhe, volle Breite, zentriert */
@@ -133,7 +134,7 @@ main {
 .card {
     border: 1px solid rgba(255, 255, 255, 0.12);
     background: rgba(255, 255, 255, 0.08);
-    box-shadow: 0 4px 10px rgb(0, 0, 0);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.136);
     border-radius: 16px;
     padding: 14px;
     margin-top: 14px;
