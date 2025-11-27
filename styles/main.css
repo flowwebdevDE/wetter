@@ -6,7 +6,7 @@ html,body { height:100%; margin:0; }
 body {
   font-family: system-ui, Arial, sans-serif;
   margin: 0;
-  padding-top: 68px;                 /* Platz für fixed header */
+  padding-top: 100px;                 /* Platz für fixed header */
   background: #1976d2;
   background-repeat: no-repeat;
   background-size: cover;
@@ -20,11 +20,12 @@ header {
   top: 0;
   left: 0;
   right: 0;
-  height: 68px;                      /* feste Höhe -> zuverlässig */
+  padding-top: 50px;
+  height: 118px;                      /* feste Höhe -> zuverlässig */
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 8px 16px;                 /* Innenabstand */
+  padding: 8px 8px;                 /* Innenabstand */
   background: rgba(255,255,255,0.10);/* halbtransparent für backdrop-filter */
   -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
@@ -36,6 +37,7 @@ header {
 .logo {
   display: inline-block;             /* sichtbar, nur wenn gebraucht */
   padding: 5px;
+  margin-top: 40px;
   background: white;
   border-radius: 12px;
   width: 48px;
@@ -69,6 +71,7 @@ main {
   border: none;
   box-shadow: 0 4px 10px rgba(0,0,0,0.25);
   padding: 12px;
+  margin-top: 52px;
   color: white;
   font-weight: 700;
   font-size: 1rem;
