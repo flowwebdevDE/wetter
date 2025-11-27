@@ -1,20 +1,59 @@
   body {
       font-family: system-ui, Arial;
       margin: 0;
-      padding: 16px;
+      padding-top: 16px;
       max-width: 700px;
       margin: auto;
       background: linear-gradient(lightblue, blue);
   }
 
+  header {
+    position: fixed;
+    top: 0;
+    background: transparent;
+    min-width: 100vw;
+    backdrop-filter: blur(10px);
+    box-shadow: black 0 5px 10px;
+    z-index: 1000;
+  }
+
+  .logo {
+    display: none;
+    max-width: 75px;
+    max-height: auto;
+  }
+
+  header h1 {
+    text-align: center;
+    margin-bottom: 5px;
+  }
+
+  main {
+    margin: 10px;
+    margin-top: 110px;
+  }
+
+  #geoBtn {
+    background: rgba(0, 0, 255, 0.411);
+    border: none;
+    box-shadow: black 5px 5px 10px;
+    margin-left: 5vw;
+    margin-bottom: 10px;
+    width: 90vw;
+    padding: 10px;
+    color: white;
+    font-weight: bold;
+    font-size: 0.9em;
+    border-radius: 15px;
+  }
+
   #searchBox {
-      width: 100%;
+      width: 83vw;
       padding: 10px;
       font-size: 1.1rem
   }
 
   #suggestionsList {
-      border: 1px solid #ccc;
       background: #fff;
       position: absolute;
       width: 100%;

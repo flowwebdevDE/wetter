@@ -78,9 +78,9 @@ function render(data, lat, lon, label) {
     document.getElementById('placeName').textContent = label || `${lat.toFixed(3)},${lon.toFixed(3)}`;
     const cw = data.current_weather;
     document.getElementById('currentSummary').innerHTML =
-        `Jetzt: ${cw.temperature}°C — Wind ${cw.windspeed} km/h — ${weatherText(cw.weathercode)} ${iconForCode(cw.weathercode)}`;
+        `${iconForCode(cw.weathercode)} <br><strong>Temperatur: ${cw.temperature}°C<br>Wind: ${cw.windspeed} km/h<br>${weatherText(cw.weathercode)}</strong>`;
 
-    document.getElementById('details').innerHTML = `Sonnenaufgang: ${data.daily.sunrise[0]} — Sonnenuntergang: ${data.daily.sunset[0]}`;
+    document.getElementById('details').innerHTML = `Sonnenaufgang: ${data.daily.sunrise[0]} Sonnenuntergang: ${data.daily.sunset[0]}`;
 
     const grid = document.getElementById('forecastGrid'); grid.innerHTML = '';
     for (let i = 0; i < data.daily.time.length; i++) {
