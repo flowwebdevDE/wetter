@@ -60,11 +60,14 @@
 
   #suggestionsList {
       background: #fff;
+      margin-top: 5px;
+      border-radius: 15px;
       position: absolute;
       width: 100%;
       max-height: 200px;
       overflow-y: auto;
-      z-index: 999
+      z-index: 999;
+      box-shadow: black 5px 5px 10px;
   }
 
   .card {
