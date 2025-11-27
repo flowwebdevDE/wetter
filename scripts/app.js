@@ -77,12 +77,17 @@ function render(data, lat, lon, label) {
     document.getElementById('weather').style.display = 'block';
     document.getElementById('placeName').textContent = label || `${lat.toFixed(3)},${lon.toFixed(3)}`;
     const cw = data.current_weather;
-    document.getElementById('temp').innerHTML = 
-    `${cw.temperature}°C`;
+    document.getElementById('icon').innerHTML = `${iconForCode(cw.weathercode)}`
+    document.getElementById('temp').innerHTML =
+        `${cw.temperature}°C`;
     document.getElementById('currentSummary').innerHTML =
-        `${iconForCode(cw.weathercode)} <br><strong>Wind: ${cw.windspeed} km/h<br>${weatherText(cw.weathercode)}</strong>`;
+        `<strong>Wind: ${cw.windspeed} km/h<br>${weatherText(cw.weathercode)}</strong>`;
 
-    document.getElementById('details').innerHTML = `Sonnenaufgang: ${data.daily.sunrise[0]} Sonnenuntergang: ${data.daily.sunset[0]}`;
+    const sunrise = data.daily.sunrise[0].split("T")[1];
+    const sunset = data.daily.sunset[0].split("T")[1];
+
+    document.getElementById('details').innerHTML =
+        `Sonnenaufgang: ${sunrise}<br>Sonnenuntergang: ${sunset}`;
 
     const grid = document.getElementById('forecastGrid'); grid.innerHTML = '';
     for (let i = 0; i < data.daily.time.length; i++) {
@@ -100,7 +105,7 @@ function render(data, lat, lon, label) {
 }
 
 // initial
-loadWeather(48.7788629,9.1776988, 'Stuttgart');
+loadWeather(48.7788629, 9.1776988, 'Stuttgart');
 
 // --- PWA Install ---
 let deferredPrompt;

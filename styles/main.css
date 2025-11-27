@@ -19,8 +19,14 @@
   }
 
   .logo {
-    display: none;
-    max-width: 75px;
+    position: relative;
+    padding: 5px;
+    background: white;
+    border-radius: 15px;
+    margin: auto;
+    margin-bottom: 5px;
+    display: block;
+    max-width: 55px;
     max-height: auto;
   }
 
@@ -68,6 +74,17 @@
       overflow-y: auto;
       z-index: 999;
       box-shadow: black 5px 5px 10px;
+  }
+
+  #icon {
+    position: relative;
+    left: 80vw;
+    bottom: 50px;
+  }
+
+  #temp {
+    position: relative;
+    bottom: 90px;
   }
 
   .card {
