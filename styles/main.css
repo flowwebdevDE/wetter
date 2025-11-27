@@ -1,118 +1,162 @@
-  body {
-      font-family: system-ui, Arial;
-      margin: 0;
-      padding-top: 16px;
-      max-width: 700px;
-      margin: auto;
-      background: linear-gradient(lightblue, blue);
-  }
+/* Basis / Layout */
+* { box-sizing: border-box; }
+html,body { height:100%; margin:0; }
 
-  header {
-    position: fixed;
-    top: 0;
-    padding-top: 5px;
-    background: transparent;
-    min-width: 100vw;
-    backdrop-filter: blur(10px);
-    box-shadow: black 0 5px 10px;
-    z-index: 1000;
-  }
+/* Hintergrund */
+body {
+  font-family: system-ui, Arial, sans-serif;
+  margin: 0;
+  padding-top: 68px;                 /* Platz für fixed header */
+  background: #1976d2;
+  background-repeat: no-repeat;
+  background-size: cover;
+  -webkit-font-smoothing:antialiased;
+  color: #111;
+}
 
-  .logo {
-    position: relative;
-    padding: 5px;
-    background: white;
-    border-radius: 15px;
-    margin: auto;
-    margin-bottom: 5px;
-    display: block;
-    max-width: 55px;
-    max-height: auto;
-  }
+/* Fixed Header - feste Höhe, volle Breite, zentriert */
+header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 68px;                      /* feste Höhe -> zuverlässig */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 16px;                 /* Innenabstand */
+  background: rgba(255,255,255,0.10);/* halbtransparent für backdrop-filter */
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.25);
+  z-index: 1000;
+}
 
-  header h1 {
-    text-align: center;
-    margin-bottom: 5px;
-  }
+/* Logo (optional) */
+.logo {
+  display: inline-block;             /* sichtbar, nur wenn gebraucht */
+  padding: 5px;
+  background: white;
+  border-radius: 12px;
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  margin-right: 12px;
+}
 
-  main {
-    margin: 10px;
-    margin-top: 115px;
-  }
+/* Header-Title */
+header h1 {
+  margin: 0;
+  font-size: 1.1rem;
+  text-align: center;
+  color: white;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+}
 
-  #geoBtn {
-    background: rgba(0, 0, 255, 0.411);
-    border: none;
-    box-shadow: black 5px 5px 10px;
-    margin-left: 5vw;
-    margin-bottom: 10px;
-    width: 90vw;
-    padding: 10px;
-    color: white;
-    font-weight: bold;
-    font-size: 0.9em;
-    border-radius: 15px;
-  }
+/* Main content - zentriert, responsive Breite */
+main {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 12px;
+  margin-top: 0; /* body already hat padding-top für Header */
+}
 
-  #searchBox {
-      width: 83vw;
-      padding: 10px;
-      font-size: 1.1rem;
-      border-radius: 15px;
-      border: none;
-      background: rgba(255, 255, 255, 0.443);
-      box-shadow: black 5px 5px 10px;
-  }
+/* Buttons & Inputs - fließendes Layout */
+#geoBtn {
+  display: block;
+  width: 100%;
+  background: rgba(0,0,255,0.45);
+  border: none;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+  padding: 12px;
+  color: white;
+  font-weight: 700;
+  font-size: 1rem;
+  border-radius: 14px;
+  cursor: pointer;
+  margin-bottom: 12px;
+}
 
-  #suggestionsList {
-      background: #fff;
-      margin-top: 5px;
-      border-radius: 15px;
-      position: absolute;
-      width: 100%;
-      max-height: 200px;
-      overflow-y: auto;
-      z-index: 999;
-      box-shadow: black 5px 5px 10px;
-  }
+/* Suchbox nutzt die Elternbreite (vermeidet vw-Overflows) */
+#searchBox {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 1.05rem;
+  border-radius: 12px;
+  border: none;
+  color: white;
+  background: rgba(0, 0, 0, 0.165);
+  box-shadow: 0 4px 10px rgb(0, 0, 0);
+  outline: none;
+}
 
-  #icon {
-    position: relative;
-    left: 80vw;
-    bottom: 50px;
-  }
+/* Vorschlagsliste positioniert relativ zum Elterncontainer */
+#suggestionsList {
+  background: #00000046;
+  margin-top: 8px;
+  border-radius: 10px;
+  position: absolute;
+  backdrop-filter: blur(10px);
+  left: 0;
+  right: 0;
+  width: auto;                /* füllt Elternbreite durch left/right */
+  max-height: 220px;
+  overflow-y: auto;
+  z-index: 9999;
+  box-shadow: 0 6px 18px rgb(0, 0, 0);
+}
 
-  #temp {
-    position: relative;
-    bottom: 90px;
-  }
+/* Icon/Temp Positionierung: keine absolute Werte mit vw mehr */
+.header-right {
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-left: 12px;
+}
 
-  .card {
-      border: 1px solid #ddd;
-      background: rgba(255, 255, 255, 0.18);
-      box-shadow: black 5px 5px 10px;
-      border-radius: 20px;
-      padding: 12px;
-      margin-top: 14px
-  }
+/* Card styling */
+.card {
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.08);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.18);
+  border-radius: 16px;
+  padding: 14px;
+  margin-top: 14px;
+  color: #fff;
+}
 
-  #forecastGrid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-      gap: 8px;
-      margin-top: 8px
-  }
+/* Forecast Grid */
+#forecastGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
 
-  .day {
-      text-align: center;
-      padding: 8px;
-      border: 1px solid #eee;
-      border-radius: 8px;
-      background: #fafafa
-  }
+/* Day tile - Anpassung für dunklen Hintergrund */
+.day {
+  text-align: center;
+  padding: 10px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.06);
+  color: #fff;
+}
 
-  .icon {
-      width: 48px;
-      height: 48px;
-      margin: auto
-  }
+/* Icon-Größe */
+.icon, .icon svg {         /* sowohl container als auch svg ansprechen */
+  width: 48px;
+  height: 48px;
+  display:block;
+  margin: 8px auto;
+}
+
+/* Offline Hinweis */
+#offlineNotice {
+  color: #ffdddd;
+  background: rgba(0,0,0,0.25);
+  padding: 10px;
+  border-radius: 10px;
+  margin-top: 12px;
+  font-weight: 700;
+}
