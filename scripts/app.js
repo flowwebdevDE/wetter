@@ -77,8 +77,10 @@ function render(data, lat, lon, label) {
     document.getElementById('weather').style.display = 'block';
     document.getElementById('placeName').textContent = label || `${lat.toFixed(3)},${lon.toFixed(3)}`;
     const cw = data.current_weather;
+    document.getElementById('temp').innerHTML = 
+    `${cw.temperature}°C`;
     document.getElementById('currentSummary').innerHTML =
-        `${iconForCode(cw.weathercode)} <br><strong>Temperatur: ${cw.temperature}°C<br>Wind: ${cw.windspeed} km/h<br>${weatherText(cw.weathercode)}</strong>`;
+        `${iconForCode(cw.weathercode)} <br><strong>Wind: ${cw.windspeed} km/h<br>${weatherText(cw.weathercode)}</strong>`;
 
     document.getElementById('details').innerHTML = `Sonnenaufgang: ${data.daily.sunrise[0]} Sonnenuntergang: ${data.daily.sunset[0]}`;
 
@@ -98,7 +100,7 @@ function render(data, lat, lon, label) {
 }
 
 // initial
-loadWeather(52.52, 13.405, 'Berlin');
+loadWeather(48.7788629,9.1776988, 'Stuttgart');
 
 // --- PWA Install ---
 let deferredPrompt;
