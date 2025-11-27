@@ -103,7 +103,6 @@ function render(data, lat, lon, label) {
         grid.appendChild(day);
     }
     
-    renderCharts(lat, lon);
     renderDailyOverview(lat, lon); // <-- Tagesübersicht
 }
 

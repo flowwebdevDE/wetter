@@ -5,11 +5,29 @@ async function renderDailyOverview(lat, lon) {
     const grid = document.getElementById('hourlyForecastGrid');
     grid.innerHTML = '';
 
-    const hoursToShow = Math.min(12, data.hourly.time.length);
+    // --- aktuelle Uhrzeit bestimmen ---
+    const now = new Date();
+    
+    // API liefert Stunden als z.B. "2025-11-27T14:00"
+    const times = data.hourly.time.map(t => new Date(t));
 
-    for (let i = 0; i < hoursToShow; i++) {
+    // Index der aktuellen Stunde finden
+    let startIndex = times.findIndex(t => t.getHours() === now.getHours() && t.getDate() === now.getDate());
+
+    // Falls API-Minute 00 und Systemminute >00 -> nächstgrößere Stunde
+    if (startIndex === -1) {
+        startIndex = times.findIndex(t => t > now);
+    }
+
+    if (startIndex === -1) startIndex = 0;
+
+    // Nur 12 Stunden anzeigen
+    const endIndex = Math.min(startIndex + 12, times.length);
+
+    for (let i = startIndex; i < endIndex; i++) {
         const hourDiv = document.createElement('div');
         hourDiv.className = 'hour';
+
         const time = data.hourly.time[i].split('T')[1];
         const temp = data.hourly.temperature_2m[i];
         const rain = data.hourly.precipitation[i];
@@ -24,6 +42,7 @@ async function renderDailyOverview(lat, lon) {
             <div>Wind: ${wind} km/h</div>
             <div>${rain} mm</div>
         `;
+
         grid.appendChild(hourDiv);
     }
 }
