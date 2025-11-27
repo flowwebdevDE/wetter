@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Wetter App – Open-Meteo (ohne Karte)</title>
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="styles/main.css">
+</head>
+<body>
+<h1>Wetter App <em style="font-size: 0.6em;">Version 0.1beta</em></h1>
+
+<button id="geoBtn">📍 Mein Standort</button>
+<div style="margin-top:10px;position:relative">
+  <input id="searchBox" placeholder="Ort suchen..." autocomplete="off" />
+  <div id="suggestionsList"></div>
+</div>
+
+<div id="weather" class="card" style="display:none">
+  <h2 id="placeName">—</h2>
+  <div id="currentSummary"></div>
+  <div id="details"></div>
+  <h3>7‑Tage Vorhersage</h3>
+  <div id="forecastGrid"></div>
+</div>
+
+<button id="installBtn" style="display:none;margin-top:12px">📱 App installieren</button>
+<script src="scripts/app.js"></script>
+
+<div id="offlineNotice" class="card" style="display:none;margin-top:12px;color:#c33;font-weight:600"></div>
+</body>
+</html>

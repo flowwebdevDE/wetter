@@ -1,0 +1,53 @@
+  body {
+      font-family: system-ui, Arial;
+      margin: 0;
+      padding: 16px;
+      max-width: 700px;
+      margin: auto;
+      background: linear-gradient(lightblue, blue);
+  }
+
+  #searchBox {
+      width: 100%;
+      padding: 10px;
+      font-size: 1.1rem
+  }
+
+  #suggestionsList {
+      border: 1px solid #ccc;
+      background: #fff;
+      position: absolute;
+      width: 100%;
+      max-height: 200px;
+      overflow-y: auto;
+      z-index: 999
+  }
+
+  .card {
+      border: 1px solid #ddd;
+      background: rgba(255, 255, 255, 0.18);
+      border-radius: 8px;
+      padding: 12px;
+      margin-top: 14px
+  }
+
+  #forecastGrid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 8px;
+      margin-top: 8px
+  }
+
+  .day {
+      text-align: center;
+      padding: 8px;
+      border: 1px solid #eee;
+      border-radius: 8px;
+      background: #fafafa
+  }
+
+  .icon {
+      width: 48px;
+      height: 48px;
+      margin: auto
+  }
