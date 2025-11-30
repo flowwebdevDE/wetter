@@ -90,11 +90,16 @@ function render(data, lat, lon, label) {
         `Sonnenaufgang: ${sunrise}<br>Sonnenuntergang: ${sunset}`;
 
     const grid = document.getElementById('forecastGrid'); grid.innerHTML = '';
+    // Styles für horizontale Ansicht
+    grid.style.display = 'flex';
+    grid.style.overflowX = 'auto';
+
     for (let i = 0; i < data.daily.time.length; i++) {
         const day = document.createElement('div'); day.className = 'day';
         const code = data.daily.weathercode[i];
+        const dayName = new Date(data.daily.time[i]).toLocaleDateString('de-DE', { weekday: 'short' });
         day.innerHTML = `
-      <div style="font-weight:600">${data.daily.time[i]}</div>
+      <div style="font-weight:600">${dayName}</div>
       <div>${iconForCode(code)}</div>
         <div>${weatherText(code)}</div>
         <div>${data.daily.temperature_2m_max[i]}°C / ${data.daily.temperature_2m_min[i]}°C</div>
@@ -108,9 +113,11 @@ function render(data, lat, lon, label) {
 
 
 // initial
-navigator.geolocation.getCurrentPosition(p => {
-        loadWeather(p.coords.latitude, p.coords.longitude, "Mein Standort");
-    }, () => alert("Standort nicht erlaubt"));
+navigator.geolocation.getCurrentPosition(
+    p => loadWeather(p.coords.latitude, p.coords.longitude, "Mein Standort"),
+    // Fallback auf Stuttgart, wenn Standort nicht erlaubt
+    () => loadWeather(48.7758, 9.1829, "Stuttgart")
+);
 
 // --- PWA Install ---
 let deferredPrompt;

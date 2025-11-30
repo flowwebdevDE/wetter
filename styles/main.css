@@ -13,7 +13,7 @@ body {
 body {
     font-family: system-ui, Arial, sans-serif;
     margin: 0;
-    padding-top: 80px;
+    padding-top: 30px;
     /* Platz für fixed header */
     background: linear-gradient(90deg, #1976d2, #5178a0);
     -webkit-font-smoothing: antialiased;
@@ -28,7 +28,7 @@ header {
     left: 0;
     right: 0;
     padding-top: 50px;
-    height: 98px;
+    height: 10px;
     /* feste Höhe -> zuverlässig */
     display: flex;
     align-items: center;

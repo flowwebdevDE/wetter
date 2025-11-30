@@ -5,14 +5,17 @@ async function renderDailyOverview(lat, lon) {
     const grid = document.getElementById('hourlyForecastGrid');
     grid.innerHTML = '';
 
-    // --- aktuelle Uhrzeit bestimmen ---
-    const now = new Date();
+    // --- aktuelle Uhrzeit in der Zeitzone des Ortes bestimmen ---
+    const timezone = data.timezone;
+    const now = new Date(new Date().toLocaleString("en-US", { timeZone: timezone }));
     
     // API liefert Stunden als z.B. "2025-11-27T14:00"
     const times = data.hourly.time.map(t => new Date(t));
 
-    // Index der aktuellen Stunde finden
-    let startIndex = times.findIndex(t => t.getHours() === now.getHours() && t.getDate() === now.getDate());
+    // Index der aktuellen Stunde finden.
+    // Wir vergleichen Jahr, Monat, Tag und Stunde, um sicherzustellen, dass wir den richtigen Zeitpunkt erwischen.
+    let startIndex = times.findIndex(t => 
+        t.getFullYear() === now.getFullYear() && t.getMonth() === now.getMonth() && t.getDate() === now.getDate() && t.getHours() === now.getHours());
 
     // Falls API-Minute 00 und Systemminute >00 -> nächstgrößere Stunde
     if (startIndex === -1) {
