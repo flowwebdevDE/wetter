@@ -206,3 +206,20 @@ main {
     flex-shrink: 0;
     /* Verhindert Zusammenziehen */
 }
+
+a {
+    display: block;
+    width: 100%;
+    background: rgba(0, 0, 255, 0.45);
+    border: none;
+    padding: 12px;
+    margin-top: 10px;
+    color: white;
+    font-weight: 700;
+    font-size: 1rem;
+    border-radius: 14px;
+    cursor: pointer;
+    margin-bottom: 0;
+    text-align: center;
+    text-decoration: none;
+}

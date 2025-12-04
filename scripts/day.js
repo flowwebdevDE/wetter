@@ -25,7 +25,7 @@ async function renderDailyOverview(lat, lon) {
     if (startIndex === -1) startIndex = 0;
 
     // Nur 12 Stunden anzeigen
-    const endIndex = Math.min(startIndex + 12, times.length);
+    const endIndex = Math.min(startIndex + 24, times.length);
 
     for (let i = startIndex; i < endIndex; i++) {
         const hourDiv = document.createElement('div');
