@@ -86,8 +86,15 @@ function render(data, lat, lon, label) {
     const sunrise = data.daily.sunrise[0].split("T")[1];
     const sunset = data.daily.sunset[0].split("T")[1];
 
-    document.getElementById('details').innerHTML =
-        `Sonnenaufgang: ${sunrise}<br>Sonnenuntergang: ${sunset}`;
+    let detailsHTML = `Sonnenaufgang: ${sunrise}<br>Sonnenuntergang: ${sunset}`;
+
+    // Frostwarnung für den nächsten Morgen
+    const nextDayMinTemp = data.daily.temperature_2m_min[1];
+    if (nextDayMinTemp <= 0) {
+        detailsHTML += `<br><br><strong style=" padding: 10px; background: rgba(0, 0, 255, 0.45); border-radius: 25px; color: #ffffffff;">❄️ Frostwarnung: Morgen früh unter 0°C. Auto abdecken!</strong>`;
+    }
+
+    document.getElementById('details').innerHTML = detailsHTML;
 
     const grid = document.getElementById('forecastGrid'); grid.innerHTML = '';
     // Styles für horizontale Ansicht
