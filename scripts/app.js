@@ -91,7 +91,7 @@ function render(data, lat, lon, label) {
     // Frostwarnung für den nächsten Morgen
     const nextDayMinTemp = data.daily.temperature_2m_min[1];
     if (nextDayMinTemp <= 0) {
-        detailsHTML += `<br><br><strong style=" padding: 10px; background: rgba(0, 0, 255, 0.45); border-radius: 25px; color: #ffffffff;">❄️ Frostwarnung: Morgen früh unter 0°C. Auto abdecken!</strong>`;
+        detailsHTML += `<br><br><strong style=" padding: 10px; background: rgba(0, 0, 255, 0.45); border-radius: 25px; color: #ffffffff;">❄️ Frostwarnung: Auto abdecken!</strong>`;
     }
 
     document.getElementById('details').innerHTML = detailsHTML;
