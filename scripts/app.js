@@ -33,13 +33,66 @@ const iconForCode = c => {
     if (c >= 45 && c <= 48) return fog(); if ((c >= 51 && c <= 67) || (c >= 80 && c <= 86)) return rain(); if (c >= 71 && c <= 77) return snow();
     return cloud();
 };
-function wrap(x) { return `<svg class="icon" viewBox="0 0 64 64">${x}</svg>` }
-const sun = () => wrap('<circle cx="32" cy="32" r="14" fill="#FFDD57"/>');
-const partly = () => wrap('<circle cx="26" cy="26" r="10" fill="#FFDD57"/><path d="M16 42c10-10 30-10 40 0" fill="#ddd"/>');
-const cloud = () => wrap('<path d="M18 40a10 10 0 0 1 0-20 16 16 0 0 1 32 7 10 10 0 0 1-6 13H20" fill="#ddd"/>');
-const fog = () => wrap('<rect x="10" y="30" width="44" height="8" fill="#ccc" rx="3"/>');
-const rain = () => wrap('<path d="M16 30c10-10 30-10 40 0" fill="#ddd"/><line x1="26" y1="40" x2="26" y2="52" stroke="#4af" stroke-width="3"/><line x1="36" y1="40" x2="36" y2="54" stroke="#4af" stroke-width="3"/><line x1="46" y1="40" x2="46" y2="52" stroke="#4af" stroke-width="3"/>');
-const snow = () => wrap('<text x="20" y="44" font-size="28">❄</text>');
+function wrap(x) { 
+  return `<svg class="icon" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">${x}</svg>`; 
+}
+
+// ☀ Sonne
+const sun = () => wrap(`
+  <circle cx="32" cy="32" r="14" fill="#FFDD57"/>
+  <!--<g stroke="#FFDD57" stroke-width="4" stroke-linecap="round">
+    <line x1="32" y1="6"  x2="32" y2="18"/>
+    <line x1="32" y1="46" x2="32" y2="58"/>
+    <line x1="6"  y1="32" x2="18" y2="32"/>
+    <line x1="46" y1="32" x2="58" y2="32"/>
+    <line x1="14" y1="14" x2="22" y2="22"/>
+    <line x1="42" y1="42" x2="50" y2="50"/>
+    <line x1="14" y1="50" x2="22" y2="42"/>
+    <line x1="42" y1="22" x2="50" y2="14"/>
+  </g>-->
+`);
+
+// 🌤 Teilweise sonnig
+const partly = () => wrap(`
+  <circle cx="22" cy="22" r="10" fill="#FFDD57"/>
+  <path d="M18 44h28a10 10 0 0 0 0-20 16 16 0 0 0-30 6 10 10 0 0 0 2 14z"
+        fill="#ddd"/>
+`);
+
+// ☁ Wolke
+const cloud = () => wrap(`
+  <path d="M20 44h28a10 10 0 0 0 0-20 16 16 0 0 0-30 6 10 10 0 0 0 2 14z"
+        fill="#ddd"/>
+`);
+
+// 🌫 Nebel
+const fog = () => wrap(`
+  <rect x="10" y="26" width="44" height="6" rx="3" fill="#ccc"/>
+  <rect x="8"  y="34" width="48" height="6" rx="3" fill="#cccccc96"/>
+  <rect x="12" y="42" width="40" height="6" rx="3" fill="#ccc"/>
+`);
+
+// 🌧 Regen
+const rain = () => wrap(`
+  <path d="M18 30h28a10 10 0 0 0 0-20 16 16 0 0 0-30 6 10 10 0 0 0 2 14z"
+        fill="#ddd"/>
+  <g stroke="#4af" stroke-width="3" stroke-linecap="round">
+    <line x1="24" y1="38" x2="24" y2="52"/>
+    <line x1="32" y1="38" x2="32" y2="54"/>
+    <line x1="40" y1="38" x2="40" y2="52"/>
+  </g>
+`);
+
+// ❄ Schnee
+const snow = () => wrap(`
+  <g stroke="#88c" stroke-width="3" stroke-linecap="round">
+    <line x1="32" y1="18" x2="32" y2="46"/>
+    <line x1="18" y1="32" x2="46" y2="32"/>
+    <line x1="22" y1="22" x2="42" y2="42"/>
+    <line x1="22" y1="42" x2="42" y2="22"/>
+  </g>
+`);
+
 
 // --- Autocomplete ---
 const sb = document.getElementById('searchBox');
@@ -97,6 +150,7 @@ function render(data, lat, lon, label) {
     document.getElementById('details').innerHTML = detailsHTML;
 
     const grid = document.getElementById('forecastGrid'); grid.innerHTML = '';
+
     // Styles für horizontale Ansicht
     grid.style.display = 'flex';
     grid.style.overflowX = 'auto';
@@ -117,7 +171,6 @@ function render(data, lat, lon, label) {
     
     renderDailyOverview(lat, lon); // <-- Tagesübersicht
 }
-
 
 // initial
 navigator.geolocation.getCurrentPosition(
