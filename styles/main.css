@@ -132,10 +132,10 @@ main {
 
 /* Card styling */
 .card {
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(0, 0, 0, 0.283);
     background: rgba(255, 255, 255, 0.08);
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.136);
-    border-radius: 16px;
+    border-radius: 25px;
     padding: 14px;
     margin-top: 14px;
     color: #fff;
