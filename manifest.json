@@ -5,5 +5,5 @@
   "display":"standalone",
   "background_color":"#ffffff",
   "theme_color":"#1976d2",
-  "icons":[{"src":"images/logo.png","sizes":"512x512","type":"image/png"}]
+  "icons":[{"src":"images/wetter.png","sizes":"512x512","type":"image/png"}]
 }
