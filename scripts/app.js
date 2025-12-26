@@ -143,15 +143,13 @@ const Specials = {
     render: function(data, label) {
         const h = data.hourly || {};
         const html = `
-            <h3>Wetterdetails</h3>
-            <ul style="list-style:none; padding:0; display:flex; flex-wrap:wrap; gap:10px;">
-                <li style="background:#FFEB3B; padding:10px; border-radius:10px; flex:1 1 120px;">☀ UV-Index: <strong>${this.getValue(h.uv_index)}</strong></li>
-                <li style="background:#90CAF9; padding:10px; border-radius:10px; flex:1 1 120px;">🌡 Taupunkt: <strong>${this.getValue(h.dewpoint_2m)}°C</strong></li>
-                <li style="background:#B3E5FC; padding:10px; border-radius:10px; flex:1 1 120px;">🌫 Sicht: <strong>${this.getValue(h.visibility)} m</strong></li>
-                <li style="background:#C8E6C9; padding:10px; border-radius:10px; flex:1 1 120px;">❄ Schneefall: <strong>${this.getValue(h.snowfall)} cm</strong></li>
-                <li style="background:#BDBDBD; padding:10px; border-radius:10px; flex:1 1 120px;">🏔 Schneehöhe: <strong>${this.getValue(h.snow_height)} cm</strong></li>
-                <li style="background:#FFC107; padding:10px; border-radius:10px; flex:1 1 120px;">🧭 Luftdruck: <strong>${this.getValue(h.pressure_msl)} hPa</strong></li>
-            </ul>
+            <h2 style="color:white;">Wetterdetails</h2>
+                <p>UV-Index: <strong>${this.getValue(h.uv_index)}</strong></p>
+                <p>Taupunkt: <strong>${this.getValue(h.dewpoint_2m)}°C</strong></p>
+                <p>Sicht: <strong>${this.getValue(h.visibility)} m</strong></p>
+                <p>Schneefall: <strong>${this.getValue(h.snowfall)} cm</strong></p>
+                <p>Schneehöhe: <strong>${this.getValue(h.snow_height)} cm</strong></p>
+                <p>Luftdruck: <strong>${this.getValue(h.pressure_msl)} hPa</strong></p>
         `;
         const container = document.getElementById("specialParamsDashboard");
         if (container) container.innerHTML = html;
