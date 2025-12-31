@@ -8,6 +8,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Wetter App - Lite</title>
     <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
         * {
@@ -53,6 +54,7 @@
         #condition {
             font-size: 18px;
             opacity: 0.9;
+            margin-bottom: 10px;
         }
 
         #hiLo {
@@ -136,6 +138,10 @@
             background: #2b6cb0;
             border-radius: 22px;
         }
+
+        .label i { margin-right: 8px; width: 16px; text-align: center; }
+        .hour i { display: block; margin: 8px 0; font-size: 24px; }
+        .day i { width: 30px; text-align: center; display: inline-block; }
     </style>
 </head>
 
@@ -161,27 +167,27 @@
 
         <div class="grid">
             <div class="box">
-                <div class="label">Gefühlt</div>
+                <div class="label"><i class="fa-solid fa-temperature-high"></i> Gefühlt</div>
                 <div class="value" id="feels"></div>
             </div>
             <div class="box">
-                <div class="label">UV-Index</div>
+                <div class="label"><i class="fa-solid fa-sun"></i> UV-Index</div>
                 <div class="value" id="uv"></div>
             </div>
             <div class="box">
-                <div class="label">Wind</div>
+                <div class="label"><i class="fa-solid fa-wind"></i> Wind</div>
                 <div class="value" id="wind"></div>
             </div>
             <div class="box">
-                <div class="label">Luftfeuchte</div>
+                <div class="label"><i class="fa-solid fa-droplet"></i> Luftfeuchtigkeit</div>
                 <div class="value" id="humidity"></div>
             </div>
             <div class="box">
-                <div class="label">Luftdruck</div>
+                <div class="label"><i class="fa-solid fa-gauge"></i> Luftdruck</div>
                 <div class="value" id="pressure"></div>
             </div>
             <div class="box">
-                <div class="label">Sicht</div>
+                <div class="label"><i class="fa-solid fa-eye"></i> Sicht</div>
                 <div class="value" id="visibility"></div>
             </div>
         </div>
@@ -201,6 +207,21 @@
             80: "Regenschauer", 81: "Regenschauer", 82: "Starke Schauer",
             95: "Gewitter", 96: "Gewitter", 99: "Starkes Gewitter"
         };
+
+        function getIcon(code, isDay = 1) {
+            const map = {
+                0: isDay ? "fa-sun" : "fa-moon",
+                1: isDay ? "fa-cloud-sun" : "fa-cloud-moon", 2: isDay ? "fa-cloud-sun" : "fa-cloud-moon", 
+                3: "fa-cloud",
+                45: "fa-smog", 48: "fa-smog",
+                51: "fa-cloud-rain", 53: "fa-cloud-rain", 55: "fa-cloud-showers-heavy",
+                61: "fa-cloud-rain", 63: "fa-cloud-rain", 65: "fa-cloud-showers-heavy",
+                71: "fa-snowflake", 73: "fa-snowflake", 75: "fa-snowflake",
+                80: "fa-cloud-rain", 81: "fa-cloud-rain", 82: "fa-cloud-showers-heavy",
+                95: "fa-bolt", 96: "fa-bolt", 99: "fa-bolt"
+            };
+            return map[code] || "fa-cloud";
+        }
 
         // ---- Load ----
         navigator.geolocation.getCurrentPosition(
@@ -227,7 +248,7 @@
         function render(d) {
             const cw = d.current_weather;
             document.getElementById("tempMain").textContent = Math.round(cw.temperature) + "°";
-            document.getElementById("condition").textContent = TEXT[cw.weathercode];
+            document.getElementById("condition").innerHTML = `<i class="fa-solid ${getIcon(cw.weathercode, cw.is_day)}"></i> ${TEXT[cw.weathercode]}`;
             document.getElementById("hiLo").textContent =
                 `H: ${d.daily.temperature_2m_max[0]}°  T: ${d.daily.temperature_2m_min[0]}°`;
 
@@ -239,6 +260,7 @@
                 el.className = "hour";
                 el.innerHTML = `
             ${d.hourly.time[i].split("T")[1].slice(0, 5)}<br>
+            <i class="fa-solid ${getIcon(d.hourly.weathercode[i])}"></i>
             ${Math.round(d.hourly.temperature_2m[i])}°
         `;
                 h.appendChild(el);
@@ -252,6 +274,7 @@
                 el.className = "day";
                 el.innerHTML = `
             <span>${new Date(d.daily.time[i]).toLocaleDateString("de", { weekday: "short" })}</span>
+            <i class="fa-solid ${getIcon(d.daily.weathercode[i])}"></i>
             <span>${d.daily.temperature_2m_min[i]}° / ${d.daily.temperature_2m_max[i]}°</span>
         `;
                 daily.appendChild(el);
@@ -270,7 +293,7 @@
                 (d.hourly.visibility[0] / 1000).toFixed(1) + " km";
 
             document.getElementById("sun").innerHTML =
-                `Sonnenaufgang: ${d.daily.sunrise[0].split("T")[1]} &nbsp; <br> Sonnenuntergang: ${d.daily.sunset[0].split("T")[1]}`;
+                `<i class="fa-solid fa-sunrise"></i>Sonnenaufgang: ${d.daily.sunrise[0].split("T")[1]} &nbsp;&nbsp;<br> <i class="fa-solid fa-sunset"></i>Sonnenuntergang: ${d.daily.sunset[0].split("T")[1]}`;
         }
     </script>
 </body>
