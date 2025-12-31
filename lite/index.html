@@ -58,7 +58,7 @@
             border: none;
             background: rgba(255, 255, 255, 0.2);
             color: white;
-            width: 60%;
+            width: 80%;
             text-align: center;
             outline: none;
         }
@@ -168,16 +168,6 @@
             opacity: 0.8;
         }
 
-        a {
-            display: none;
-            text-decoration: none;
-            color: white;
-            text-align: center;
-            padding: 10px;
-            background: #2b6cb0;
-            border-radius: 22px;
-        }
-
         .label i {
             margin-right: 8px;
             width: 16px;
@@ -199,12 +189,15 @@
         #suggestions {
             list-style: none;
             padding: 10px;
-            background: white;
-            color: black;
             border-radius: 22px;
             text-align: left;
             gap: 5px;
         }
+
+        li+li {
+            margin: 1em;
+        }
+
     </style>
 </head>
 
@@ -216,10 +209,11 @@
                 <form id="searchForm" onsubmit="handleSearch(event)" style="margin-bottom: 0;">
                     <button type="button" class="icon-btn" onclick="useGPS()"><i
                             class="fa-solid fa-location-crosshairs"></i></button>
-                    <input style="margin-bottom: 10px;" type="text" id="searchInput" placeholder="Stadt suchen..." autocomplete="off">
+                    <input style="margin-bottom: 10px;" type="text" id="searchInput" placeholder="Stadt suchen..."
+                        autocomplete="off">
                     <button type="submit" class="icon-btn"><i class="fa-solid fa-magnifying-glass"></i></button>
                 </form>
-                <ul style="display: none;" id="suggestions"></ul>
+                <ul class="card" style="display: none;" id="suggestions"></ul>
             </div>
             <div id="location">Mein Standort <i class="fa-solid fa-location-dot"
                     style="font-size: 0.8em; opacity: 0.7; margin-top: 10px;"></i></div>
@@ -266,7 +260,6 @@
         </div>
 
         <div class="card" id="sun"></div>
-        <a href="info.html">App-Infos</a>
     </div>
 
     <script>
