@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Wetter App - Lite</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+            background: linear-gradient(180deg, #2b6cb0, #63b3ed) fixed;
+            color: white;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .app {
+            max-width: 480px;
+            width: 100%;
+            min-height: 100vh;
+            margin: auto;
+            padding: 20px;
+            padding-top: max(20px, env(safe-area-inset-top));
+            padding-bottom: max(20px, env(safe-area-inset-bottom));
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        #location {
+            font-size: 22px;
+            font-weight: 600;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        #tempMain {
+            font-size: 90px;
+            font-weight: 200;
+            letter-spacing: -3px;
+            text-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        #condition {
+            font-size: 18px;
+            opacity: 0.9;
+        }
+
+        #hiLo {
+            opacity: 0.85;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 16px;
+            margin-top: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Hourly */
+        .hourly {
+            display: flex;
+            gap: 16px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+            scrollbar-width: none;
+        }
+        .hourly::-webkit-scrollbar { display: none; }
+
+        .hour {
+            min-width: 60px;
+            text-align: center;
+            font-size: 15px;
+            font-weight: 500;
+        }
+
+        /* Daily */
+        .day {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+            font-size: 17px;
+        }
+
+        .day:last-child {
+            border: none;
+        }
+
+        /* Grid */
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        .box {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 18px;
+            padding: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .value {
+            font-size: 24px;
+            font-weight: 500;
+        }
+
+        .label {
+            font-size: 14px;
+            opacity: 0.8;
+        }
+
+        a {
+            display: none;
+            text-decoration: none;
+            color: white;
+            text-align: center;
+            padding: 10px;
+            background: #2b6cb0;
+            border-radius: 22px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app">
+
+        <header>
+            <div id="location">Mein Standort</div>
+            <div id="tempMain">–°</div>
+            <div id="condition">–</div>
+            <div id="hiLo">H: –° T: –°</div>
+        </header>
+
+        <div class="card">
+            <strong>Stündlich</strong>
+            <div class="hourly" id="hourly"></div>
+        </div>
+
+        <div class="card">
+            <strong>7-Tage-Vorhersage</strong>
+            <div id="daily"></div>
+        </div>
+
+        <div class="grid">
+            <div class="box">
+                <div class="label">Gefühlt</div>
+                <div class="value" id="feels"></div>
+            </div>
+            <div class="box">
+                <div class="label">UV-Index</div>
+                <div class="value" id="uv"></div>
+            </div>
+            <div class="box">
+                <div class="label">Wind</div>
+                <div class="value" id="wind"></div>
+            </div>
+            <div class="box">
+                <div class="label">Luftfeuchte</div>
+                <div class="value" id="humidity"></div>
+            </div>
+            <div class="box">
+                <div class="label">Luftdruck</div>
+                <div class="value" id="pressure"></div>
+            </div>
+            <div class="box">
+                <div class="label">Sicht</div>
+                <div class="value" id="visibility"></div>
+            </div>
+        </div>
+
+        <div class="card" id="sun"></div>
+        <a href="info.html">App-Infos</a>
+    </div>
+
+    <script>
+        // ---- Texte ----
+        const TEXT = {
+            0: "Klar", 1: "Meist klar", 2: "Teilweise bewölkt", 3: "Bewölkt",
+            45: "Nebel", 48: "Reifnebel",
+            51: "Nieselregen", 53: "Nieselregen", 55: "Starker Nieselregen",
+            61: "Regen", 63: "Regen", 65: "Starker Regen",
+            71: "Schnee", 73: "Schnee", 75: "Starker Schnee",
+            80: "Regenschauer", 81: "Regenschauer", 82: "Starke Schauer",
+            95: "Gewitter", 96: "Gewitter", 99: "Starkes Gewitter"
+        };
+
+        // ---- Load ----
+        navigator.geolocation.getCurrentPosition(
+            p => load(p.coords.latitude, p.coords.longitude),
+            () => {
+                document.querySelector('.app').innerHTML = `
+                    <div style="height: 80vh; display: flex; align-items: center; justify-content: center; text-align: center;">
+                        <h2>Bitte erlaube den Standortzugriff um Wetterdaten zu erhalten.</h2>
+                    </div>`;
+            }
+        );
+
+        async function load(lat, lon) {
+            const url =
+                `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&
+    hourly=temperature_2m,apparent_temperature,weathercode,relativehumidity_2m,visibility,pressure_msl,uv_index&
+    daily=weathercode,temperature_2m_max,temperature_2m_min,sunrise,sunset&
+    timezone=auto`.replace(/\s+/g, "");
+
+            const d = await fetch(url).then(r => r.json());
+            render(d);
+        }
+
+        function render(d) {
+            const cw = d.current_weather;
+            document.getElementById("tempMain").textContent = Math.round(cw.temperature) + "°";
+            document.getElementById("condition").textContent = TEXT[cw.weathercode];
+            document.getElementById("hiLo").textContent =
+                `H: ${d.daily.temperature_2m_max[0]}°  T: ${d.daily.temperature_2m_min[0]}°`;
+
+            // Hourly (next 12h)
+            const h = document.getElementById("hourly");
+            h.innerHTML = "";
+            for (let i = 0; i < 12; i++) {
+                const el = document.createElement("div");
+                el.className = "hour";
+                el.innerHTML = `
+            ${d.hourly.time[i].split("T")[1].slice(0, 5)}<br>
+            ${Math.round(d.hourly.temperature_2m[i])}°
+        `;
+                h.appendChild(el);
+            }
+
+            // Daily
+            const daily = document.getElementById("daily");
+            daily.innerHTML = "";
+            for (let i = 0; i < 7; i++) {
+                const el = document.createElement("div");
+                el.className = "day";
+                el.innerHTML = `
+            <span>${new Date(d.daily.time[i]).toLocaleDateString("de", { weekday: "short" })}</span>
+            <span>${d.daily.temperature_2m_min[i]}° / ${d.daily.temperature_2m_max[i]}°</span>
+        `;
+                daily.appendChild(el);
+            }
+
+            // Details
+            document.getElementById("feels").textContent =
+                Math.round(d.hourly.apparent_temperature[0]) + "°";
+            document.getElementById("uv").textContent = d.hourly.uv_index[0];
+            document.getElementById("wind").textContent = cw.windspeed + " km/h";
+            document.getElementById("humidity").textContent =
+                d.hourly.relativehumidity_2m[0] + "%";
+            document.getElementById("pressure").textContent =
+                Math.round(d.hourly.pressure_msl[0]) + " hPa";
+            document.getElementById("visibility").textContent =
+                (d.hourly.visibility[0] / 1000).toFixed(1) + " km";
+
+            document.getElementById("sun").innerHTML =
+                `Sonnenaufgang: ${d.daily.sunrise[0].split("T")[1]} &nbsp; <br> Sonnenuntergang: ${d.daily.sunset[0].split("T")[1]}`;
+        }
+    </script>
+</body>
+
+</html>
