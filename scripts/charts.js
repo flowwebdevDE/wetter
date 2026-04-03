@@ -19,7 +19,7 @@ async function fetchWithCache(url, cacheKey) {
             showOffline(stamp);
             return data;
         } else {
-            alert('Offline und keine gespeicherten Daten verfügbar.');
+            if (window.showToast) showToast('Offline und keine Daten verfügbar.');
             throw e;
         }
     }

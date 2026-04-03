@@ -13,45 +13,105 @@
 </head>
 
 <body>
-
+    <header>
+        <h1 id="placeName">Lade Wetter...</h1>
+    </header>
 
     <main>
-
         <div id="weather" style="display:none">
-            <div class="card">
-                <div
-                    style="margin-top: 0; border-radius: 22px; position: relative; padding: 5px; background: rgba(255, 255, 255, 0.274);">
-                    <input id="searchBox" placeholder="Ort suchen..." autocomplete="off">
+            <!-- TAB 1: HEUTE -->
+            <section id="tab-today" class="tab-content active">
+                <!-- Suche nur in der Heute-Ansicht -->
+                <div class="search-container">
+                    <input id="searchBox" placeholder="Ort suchen..." autocomplete="off" type="text">
                     <div id="suggestionsList"></div>
                     <button id="geoBtn">Standort nutzen</button>
                 </div>
-                <h2 id="placeName">—</h2>
-                <p id="icon"></p>
-                <h2 id="temp">-</h2>
-                <div id="currentSummary"></div>
-                <div id="details"></div>
+
+                <div class="card">
+                    <p id="icon"></p>
+                    <h2 id="temp">-</h2>
+                    <div id="currentSummary"></div>
+                    <div id="details"></div> 
+                    <button id="saveDefaultBtn" class="secondary-btn" style="margin-top: 20px; width: 100%; display: none; background: rgba(255,255,255,0.2); border: none; color: white; padding: 12px; border-radius: 16px; cursor: pointer; font-weight: bold;">Als Standardort speichern</button>
+                </div>
+
+                <div id="dailyOverview" class="card">
+                    <h2>Stündliche Übersicht</h2>
+                    <div id="hourlyForecastGrid"></div>
+                </div>
+            </section>
+
+            <!-- TAB 2: TREND -->
+            <section id="tab-forecast" class="tab-content">
+                <div class="card">
+                    <h2>7-Tage Vorhersage</h2>
+                    <div id="dailyForecastGrid"></div>
+                </div>
+                <div style="display: none;" id="hourlyChartContainer" class="card"></div> 
+            </section>
+
+            <!-- TAB 3: DETAILS -->
+            <section id="tab-details" class="tab-content">
                 <div id="specialParamsDashboard"></div>
-            </div>
+            </section>
 
-            <div id="dailyOverview" class="card">
-                <h2>Tagesübersicht</h2>
-                <div id="hourlyForecastGrid"></div>
-            </div>
+            <!-- TAB 4: INFO -->
+            <section id="tab-info" class="tab-content">
+                <div class="card info-hero">
+                    <div id="info-app-icon" class="app-logo-large"></div>
+                    <h2 style="margin: 10px 0 5px 0;">FlowWetter</h2>
+                    <span class="version-tag">Version 2.0.0</span>
+                </div>
 
-            <div style="display: none;" id="hourlyChartContainer" class="card"></div>
+                <div class="card">
+                    <h3 style="margin-top:0; font-size: 1.1rem; opacity: 0.9;">Features</h3>
+                    <ul class="info-list">
+                        <li><span class="info-icon" id="info-icon-loc"></span> Präzise Standorterkennung</li>
+                        <li><span class="info-icon" id="info-icon-chart"></span> Interaktive Wetter-Charts</li>
+                        <li><span class="info-icon" id="info-icon-save"></span> Intelligentes Offline-Caching</li>
+                        <li><span class="info-icon" id="info-icon-mobile"></span> Mobile optimiert</li>
+                    </ul>
+                </div>
 
-            <div class="card">
-                <h2>7-Tage Vorhersage</h2>
-                <div id="forecastGrid"></div>
-            </div>
+                <div class="card">
+                    <h3 style="margin-top:0; font-size: 1.1rem; opacity: 0.9;">Datenquelle</h3>
+                    <p style="font-size: 0.9rem; line-height: 1.6; opacity: 0.8; margin-bottom: 15px;">
+                        Wir nutzen die <strong>Open-Meteo API</strong> für weltweit präzise Wetterdaten – ohne Tracking und völlig werbefrei.
+                    </p>
+                    <a href="https://open-meteo.com/" target="_blank" class="info-link-btn">Open-Meteo Website</a>
+                </div>
+
+                <div class="footer-note">
+                    <p class="herz">Entwickelt mit ❤️ in Baden-Württemberg</p>
+                    <p style="font-size: 0.7rem; opacity: 0.4; margin-top: 8px;">© 2026 FlowWebDesign • FlowWetter</p>
+                </div>
+            </section>
         </div>
-
-        <a href="info.html">App-Info</a>
-
     </main>
 
     <button id="installBtn" style="display:none;margin-top:12px">📱 App installieren</button>
-    <script src="scripts/app.js"></script>
+    <script src="app.js"></script>
+
+    <!-- BOTTOM NAVIGATION -->
+    <nav class="bottom-nav">
+        <div class="nav-item active" data-tab="tab-today">
+            <div id="nav-icon-today"></div>
+            <span>Heute</span>
+        </div>
+        <div class="nav-item" data-tab="tab-forecast">
+            <div id="nav-icon-forecast"></div>
+            <span>Trend</span>
+        </div>
+        <div class="nav-item" data-tab="tab-details">
+            <div id="nav-icon-details"></div>
+            <span>Details</span>
+        </div>
+        <div class="nav-item" data-tab="tab-info">
+            <div id="nav-icon-info"></div>
+            <span>Info</span>
+        </div>
+    </nav>
 
     <div id="offlineNotice" class="card" style="display:none;margin-top:12px;color:#c33;font-weight:600"></div>
 </body>

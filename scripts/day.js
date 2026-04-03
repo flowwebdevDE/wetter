@@ -1,6 +1,13 @@
 async function renderDailyOverview(lat, lon, sunriseStr, sunsetStr) {
     const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=temperature_2m,precipitation,weathercode,windspeed_10m&timezone=auto`;
-    const data = await fetchWithCache(url, 'hourlyWeatherCache');
+    let data;
+    try {
+        data = await fetchWithCache(url, 'hourlyWeatherCache');
+        if (!data || !data.hourly) throw new Error("Keine stündlichen Daten");
+    } catch (e) {
+        console.error("Fehler in day.js:", e);
+        return;
+    }
 
     const grid = document.getElementById('hourlyForecastGrid');
     grid.innerHTML = '';
@@ -37,27 +44,15 @@ async function renderDailyOverview(lat, lon, sunriseStr, sunsetStr) {
 
         const hour = times[i];
         const hourStr = data.hourly.time[i].split("T")[1];
+        const dateStr = hour.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' });
 
-        // ---- NACHT LOGIK ----
         const night = (hour < sunrise || hour > sunset);
-
-        const temp = data.hourly.temperature_2m[i];
-        const rain = data.hourly.precipitation[i];
-        const wind = data.hourly.windspeed_10m[i];
-        const code = data.hourly.weathercode[i];
-
-        const hourDiv = document.createElement('div');
+        const code = data.hourly.weathercode[i]; // weatherText ist global in app.js definiert
+        const windSpeed = data.hourly.windspeed_10m[i];
+        const windStyle = windSpeed >= 50 ? 'color:#ff4444; font-weight:bold;' : 'opacity:0.8;';
+        const hourDiv = document.createElement('div'); 
         hourDiv.className = 'hour';
-
-        hourDiv.innerHTML = `
-            <div><strong>${hourStr}</strong></div>
-            <div>${iconForCode(code, night)}</div>
-            <div>${weatherText(code)}</div>
-            <div>${temp}°C</div>
-            <div>Wind: ${wind} km/h</div>
-            <div>${rain} mm</div>
-        `;
-
+        hourDiv.innerHTML = `<div style="font-size:0.75rem; opacity:0.7;">${dateStr}</div><div><strong>${hourStr}</strong></div><div class="mini-icon">${iconForCode(code, night)}</div><div style="font-weight:bold;">${data.hourly.temperature_2m[i]}°C</div><div style="font-size:0.8rem; ${windStyle}">Wind: ${windSpeed} km/h</div>`;
         grid.appendChild(hourDiv);
     }
 }

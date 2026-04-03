@@ -1,6 +1,7 @@
 /* Basis / Layout */
 * {
     box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
 }
 
 html,
@@ -13,42 +14,35 @@ body {
 body {
     font-family: system-ui, Arial, sans-serif;
     margin: 0;
-    padding-top: 30px;
-    /* Platz für fixed header */
-    background: linear-gradient(90deg, #1976d2, #5178a0);
+    padding-top: 65px;
+    padding-bottom: 0;
+    background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+    background-attachment: fixed;
     -webkit-font-smoothing: antialiased;
-    color: #111;
-    text-shadow: 0 4px 10px rgb(0, 0, 0);
+    color: white;
+    overscroll-behavior: none;
+    overflow-x: hidden;
 }
 
-/* Fixed Header - feste Höhe, volle Breite, zentriert */
 header {
     position: fixed;
     top: 0;
-    left: 0;
-    right: 0;
-    padding-top: 50px;
-    height: 10px;
-    /* feste Höhe -> zuverlässig */
+    width: 100%;
+    height: 60px;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 8px 8px;
-    /* Innenabstand */
-    background: rgba(255, 255, 255, 0.10);
-    /* halbtransparent für backdrop-filter */
+    background: rgba(255, 255, 255, 0.1);
     -webkit-backdrop-filter: blur(8px);
     backdrop-filter: blur(8px);
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.25);
     z-index: 1000;
 }
 
-/* Logo (optional) */
 .logo {
-    display: inline-block;
-    /* sichtbar, nur wenn gebraucht */
+    display: none;
     padding: 5px;
-    margin-top: 40px;
+    margin-top: 0;
     margin-bottom: 10px;
     background: white;
     border-radius: 12px;
@@ -65,64 +59,109 @@ header h1 {
     font-size: 1.1rem;
     text-align: center;
     color: white;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
 }
 
-/* Main content - zentriert, responsive Breite */
 main {
     max-width: 720px;
     margin: 0 auto;
-    padding: 12px;
-    margin-top: 0;
-    /* body already hat padding-top für Header */
+    padding: 12px 12px calc(100px + env(safe-area-inset-bottom)) 12px;
+    min-height: calc(100vh - 65px - 75px); /* Mindesthöhe für scrollbaren Inhalt */
+    display: flex; /* Für Tab-Inhalte */
+    flex-direction: column; /* Für Tab-Inhalte */
 }
 
-/* Buttons & Inputs - fließendes Layout */
+/* Tab Steuerung */
+.tab-content {
+    display: none;
+    animation: fadeIn 0.3s ease;
+}
+.tab-content.active {
+    display: block;
+}
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Bottom Navigation */
+.bottom-nav {
+    position: fixed; bottom: 0; left: 0; width: 100%; height: 75px;
+    background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+    display: flex; justify-content: space-around; align-items: center;
+    border-top: 1px solid rgba(255, 255, 255, 0.1); z-index: 2000;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3);
+    padding-bottom: env(safe-area-inset-bottom); /* Support für moderne Handys */
+}
+.nav-item {
+    flex: 1; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    color: rgba(255, 255, 255, 0.5); font-size: 0.7rem; text-transform: uppercase;
+    letter-spacing: 0.5px; cursor: pointer;
+    transition: color 0.3s ease, transform 0.2s ease;
+    position: relative;
+}
+.nav-item.active { color: white; }
+.nav-item svg { margin-bottom: 4px; pointer-events: none; }
+.nav-item span { pointer-events: none; }
+.nav-item:active { transform: scale(0.95); }
+
+/* Suchcontainer für bessere Positionierung der Vorschläge */
+.search-container {
+    position: relative; /* Wichtig für absolute Positionierung der Vorschläge */
+    margin-bottom: 10px; /* Abstand nach unten */
+}
+
 #geoBtn {
     display: block;
     width: 100%;
-    background: rgba(0, 0, 255, 0.45);
+    background: rgba(255, 255, 255, 0.2);
     border: none;
     padding: 12px;
     margin-top: 10px;
     color: white;
     font-weight: 700;
-    font-size: 1rem;
-    border-radius: 22px;
+    border-radius: 16px;
     cursor: pointer;
-    margin-bottom: 0;
+    backdrop-filter: blur(5px);
+    transition: background 0.3s;
 }
 
-/* Suchbox nutzt die Elternbreite (vermeidet vw-Overflows) */
+#geoBtn:active { background: rgba(255, 255, 255, 0.3); transform: scale(0.98); }
+
 #searchBox {
     width: 100%;
-    padding: 10px 12px;
-    font-size: 1.05rem;
-    border-radius: 22px;
+    padding: 14px 20px;
+    font-size: 1rem;
+    border-radius: 16px;
     border: none;
     color: white;
-    background: rgba(0, 0, 255, 0.173);
+    background: rgba(255, 255, 255, 0.15);
     outline: none;
+    transition: background 0.3s ease;
 }
 
-/* Vorschlagsliste positioniert relativ zum Elterncontainer */
+#searchBox:focus { background: rgba(255, 255, 255, 0.25); }
+
 #suggestionsList {
-    background: #00000046;
+    background: rgba(25, 25, 25, 0.9);
     margin-top: 8px;
-    border-radius: 10px;
+    border-radius: 16px;
     position: absolute;
-    backdrop-filter: blur(10px);
+    top: 100%; /* Unterhalb der Suchbox */
     left: 0;
     right: 0;
-    width: auto;
-    /* füllt Elternbreite durch left/right */
+    backdrop-filter: blur(15px);
     max-height: 220px;
     overflow-y: auto;
-    z-index: 9999;
-    box-shadow: 0 6px 18px rgb(0, 0, 0);
+    z-index: 1001; /* Über dem Header, aber unter der Nav Bar */
 }
 
-/* Icon/Temp Positionierung: keine absolute Werte mit vw mehr */
+.suggestion-item {
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    cursor: pointer;
+}
+
 .header-right {
     display: flex;
     align-items: center;
@@ -130,100 +169,197 @@ main {
     margin-left: 12px;
 }
 
-/* Card styling */
 .card {
-    border: 1px solid rgba(0, 0, 0, 0.283);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     background: rgba(255, 255, 255, 0.08);
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.136);
-    border-radius: 22px;
-    padding: 14px;
-    margin-top: 14px;
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 20px;
+    margin-top: 16px;
     color: #fff;
 }
 
-/* Forecast Grid */
-#forecastGrid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-    gap: 12px;
-    margin-top: 12px;
-}
-
-/* Day tile - Anpassung für dunklen Hintergrund */
-.day {
-    text-align: center;
-    padding: 10px;
-    border-radius: 10px;
-    background: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    color: #fff;
-}
-
-/* Icon-Größe */
-.icon,
-.icon svg {
-    /* sowohl container als auch svg ansprechen */
-    width: 120px;
-    height: 120px;
-    display: block;
-    margin: 8px auto;
-}
-
-#icon {
-    position: relative;
-}
-
-/* Offline Hinweis */
-#offlineNotice {
-    color: #ffdddd;
-    background: rgba(0, 0, 0, 0.25);
-    padding: 10px;
-    border-radius: 10px;
-    margin-top: 12px;
-    font-weight: 700;
-}
-
-#hourlyForecastGrid {
+#hourlyForecastGrid, #dailyForecastGrid {
     display: flex;
-    /* Nebeneinander anordnen */
     overflow-x: auto;
-    /* Horizontal scrollbar */
-    gap: 10px;
-    /* Abstand zwischen Stunden */
-    padding: 5px;
-    color: black;
+    gap: 12px;
+    padding-bottom: 10px;
 }
 
 .hour {
     min-width: 100px;
-    /* Breite jeder Stunde */
     text-align: center;
-    padding: 8px;
-    border-radius: 8px;
+    padding: 12px;
+    border-radius: 16px;
     background: rgba(255, 255, 255, 0.06);
     border: 1px solid rgba(255, 255, 255, 0.06);
     color: #fff;
     flex-shrink: 0;
-    /* Verhindert Zusammenziehen */
 }
 
-a {
-    display: block;
-    width: 100%;
-    background: rgba(0, 0, 255, 0.45);
-    border: none;
-    padding: 12px;
-    margin-top: 10px;
-    color: white;
-    font-weight: 700;
-    font-size: 1rem;
-    border-radius: 14px;
-    cursor: pointer;
-    margin-bottom: 0;
+.day {
+    min-width: 95px;
     text-align: center;
-    text-decoration: none;
+    padding: 12px 8px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.1);
+    flex-shrink: 0;
 }
 
-.specials li {
-    display: inline;
+#icon { text-align: center; }
+#icon svg { width: 120px; height: 120px; }
+
+#temp { font-size: 3.5rem; font-weight: 800; text-align: center; margin: 10px 0; }
+
+.sun-info { display: flex; justify-content: space-around; font-size: 0.9rem; margin-top: 15px; }
+.warning { background: rgba(239, 68, 68, 0.3); border: 1px solid #ef4444; padding: 10px; border-radius: 12px; margin-top: 15px; text-align: center; font-weight: bold; }
+.sun-info svg, .warning svg { vertical-align: middle; margin-right: 5px; }
+.mini-icon svg { width: 40px; height: 40px; }
+
+#offlineNotice { color: #ffdddd; background: rgba(0, 0, 0, 0.25); padding: 10px; border-radius: 10px; margin-top: 12px; font-weight: 700; }
+
+/* Styling for the "App Aktualisieren" link in the info tab */
+#tab-info a.card {
+    background: rgba(255, 255, 255, 0.15);
+    border: none;
+    padding: 15px 20px;
+    font-weight: bold;
+    color: white;
+    transition: background 0.3s ease;
+}
+#tab-info a.card:hover { background: rgba(255, 255, 255, 0.25); }
+
+/* Details Tab Refinement */
+.details-section {
+    padding: 20px; /* Outer card padding */
+    margin-top: 16px; /* Space between sections */
+}
+
+.details-section-title {
+    font-size: 1.1rem;
+    opacity: 0.9;
+    margin-top: 0;
+    margin-bottom: 10px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.details-grid-layout {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); /* Responsive 2-column or more */
+    gap: 12px;
+    margin-top: 15px; /* Space below title */
+}
+
+.detail-item {
+    background: rgba(255, 255, 255, 0.05); /* Slightly darker than outer card */
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 15px;
+    padding: 15px;
+    text-align: center;
+    font-size: 0.9rem;
+}
+.detail-item strong { display: block; margin-top: 5px; font-size: 1.2rem; }
+
+/* Info Tab Refinement */
+.info-hero {
+    text-align: center;
+    padding: 30px 20px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.05) 100%);
+}
+.app-logo-large svg {
+    width: 70px;
+    height: 70px;
+    filter: drop-shadow(0 8px 16px rgba(0,0,0,0.3));
+}
+.version-tag {
+    font-size: 0.75rem;
+    opacity: 0.7;
+    background: rgba(255,255,255,0.1);
+    padding: 4px 12px;
+    border-radius: 20px;
+    letter-spacing: 0.5px;
+}
+.info-list { list-style: none; padding: 0; margin: 0; }
+.info-list li {
+    display: flex; align-items: center; padding: 12px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    font-size: 0.95rem;
+}
+.info-list li:last-child { border-bottom: none; }
+.info-icon { 
+    margin-right: 15px; 
+    width: 24px; 
+    height: 24px; 
+    display: inline-flex; 
+    align-items: center; 
+    justify-content: center;
+    color: #4af;
+}
+.info-icon svg { width: 100%; height: 100%; }
+.info-link-btn {
+    display: block; width: 100%; text-align: center;
+    background: rgba(255,255,255,0.1); padding: 12px;
+    border-radius: 14px; text-decoration: none; color: white;
+    font-weight: 600; font-size: 0.9rem; transition: background 0.2s;
+}
+.info-link-btn:active { background: rgba(255,255,255,0.2); }
+.footer-note {
+    text-align: center;
+    margin: 40px 0 20px;
+}
+#tab-info .herz { color: rgba(255, 255, 255, 0.7); margin: 0; font-size: 0.9rem; }
+
+/* Modal / Detailansicht Popup */
+.modal-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 3000; padding: 20px;
+    animation: fadeIn 0.2s ease;
+}
+
+.modal-content {
+    width: 100%;
+    max-width: 450px;
+    max-height: 90vh;
+    overflow-y: auto;
+    background: linear-gradient(145deg, #1e3a8a, #2563eb) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
+    animation: modalSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes modalSlideUp {
+    from { transform: translateY(40px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+/* Modal Hourly Grid */
+.modal-hourly-grid {
+    display: flex;
+    overflow-x: auto;
+    gap: 10px;
+    padding: 10px 5px;
+    margin-top: 10px;
+    -webkit-overflow-scrolling: touch;
+}
+
+.modal-hour {
+    min-width: 65px;
+    flex-shrink: 0;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    padding: 10px 5px;
+    text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.modal-icon svg {
+    width: 100px;
+    height: 100px;
+    filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2));
 }
