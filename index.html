@@ -6,6 +6,8 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Wetter App</title>
     <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" href="assets/icon.png">
+    <link rel="apple-touch-icon" href="assets/icon.png">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="scripts/charts.js"></script>
     <script src="scripts/day.js"></script>
@@ -14,6 +16,7 @@
 
 <body>
     <header>
+        <img src="assets/icon.png" class="logo" alt="App Logo">
         <h1 id="placeName">Lade Wetter...</h1>
     </header>
 
@@ -95,6 +98,11 @@
 
     <!-- BOTTOM NAVIGATION -->
     <nav class="bottom-nav">
+        <div class="nav-brand">
+            <img src="assets/icon.png" alt="Logo">
+            <span>FlowWetter</span>
+        </div>
+
         <div class="nav-item active" data-tab="tab-today">
             <div id="nav-icon-today"></div>
             <span>Heute</span>

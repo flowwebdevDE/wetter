@@ -31,7 +31,8 @@ header {
     height: 60px;
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start; /* Logo links, Titel daneben */
+    padding: 0 16px; /* Abstand zum Rand */
     background: rgba(255, 255, 255, 0.1);
     -webkit-backdrop-filter: blur(8px);
     backdrop-filter: blur(8px);
@@ -40,29 +41,32 @@ header {
 }
 
 .logo {
-    display: none;
+    display: block;
     padding: 5px;
-    margin-top: 0;
-    margin-bottom: 10px;
+    margin: 0; /* Keine unnötigen Margins */
     background: white;
     border-radius: 12px;
     width: 48px;
     height: 48px;
     object-fit: contain;
-    margin-right: 12px;
+    margin-right: 12px; /* Abstand zum Titel */
     box-shadow: 0 6px 18px rgb(0, 0, 0);
+}
+@media (min-width: 768px) {
+    header { height: 70px; }
+    body { padding-top: 80px; }
 }
 
 /* Header-Title */
 header h1 {
     margin: 0;
     font-size: 1.1rem;
-    text-align: center;
+    text-align: left; /* Titel linksbündig */
     color: white;
 }
 
 main {
-    max-width: 720px;
+    max-width: 850px;
     margin: 0 auto;
     padding: 12px 12px calc(100px + env(safe-area-inset-bottom)) 12px;
     min-height: calc(100vh - 65px - 75px); /* Mindesthöhe für scrollbaren Inhalt */
@@ -85,11 +89,18 @@ main {
 
 /* Bottom Navigation */
 .bottom-nav {
-    position: fixed; bottom: 0; left: 0; width: 100%; height: 75px;
+    position: fixed; bottom: 0; left: 50%; 
+    transform: translateX(-50%);
+    width: 100%; 
+    max-width: 850px;
+    height: 75px;
     background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(25px);
     -webkit-backdrop-filter: blur(25px);
     display: flex; justify-content: space-around; align-items: center;
-    border-top: 1px solid rgba(255, 255, 255, 0.1); z-index: 2000;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: none;
+    border-radius: 20px 20px 0 0;
+    z-index: 2000;
     box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3);
     padding-bottom: env(safe-area-inset-bottom); /* Support für moderne Handys */
 }
@@ -102,8 +113,11 @@ main {
 }
 .nav-item.active { color: white; }
 .nav-item svg { margin-bottom: 4px; pointer-events: none; }
+.nav-item:hover { color: rgba(255, 255, 255, 0.8); }
 .nav-item span { pointer-events: none; }
 .nav-item:active { transform: scale(0.95); }
+
+.nav-brand { display: none; } /* Standardmäßig aus (Mobile) */
 
 /* Suchcontainer für bessere Positionierung der Vorschläge */
 .search-container {
@@ -176,6 +190,7 @@ main {
     border-radius: 20px;
     padding: 20px;
     margin-top: 16px;
+    transition: transform 0.2s ease, background 0.2s ease;
     color: #fff;
 }
 
@@ -184,6 +199,16 @@ main {
     overflow-x: auto;
     gap: 12px;
     padding-bottom: 10px;
+}
+/* Scrollbar-Styling für Desktop */
+#hourlyForecastGrid::-webkit-scrollbar, 
+#dailyForecastGrid::-webkit-scrollbar {
+    height: 6px;
+}
+#hourlyForecastGrid::-webkit-scrollbar-thumb, 
+#dailyForecastGrid::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.2);
+    border-radius: 10px;
 }
 
 .hour {
@@ -195,6 +220,7 @@ main {
     border: 1px solid rgba(255, 255, 255, 0.06);
     color: #fff;
     flex-shrink: 0;
+    transition: background 0.2s;
 }
 
 .day {
@@ -204,7 +230,9 @@ main {
     border-radius: 20px;
     background: rgba(255, 255, 255, 0.1);
     flex-shrink: 0;
+    transition: transform 0.2s, background 0.2s;
 }
+.day:hover, .hour:hover { background: rgba(255, 255, 255, 0.15); }
 
 #icon { text-align: center; }
 #icon svg { width: 120px; height: 120px; }
@@ -362,4 +390,124 @@ main {
     width: 100px;
     height: 100px;
     filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2));
+}
+
+/* Desktop Sidebar Navigation */
+@media (min-width: 1024px) {
+    :root {
+        --sidebar-width: 220px;
+        --header-height: 60px;
+        --accent-blue: #3b82f6;
+        --glass-bg: rgba(255, 255, 255, 0.03);
+        --glass-border: rgba(255, 255, 255, 0.08);
+    }
+
+    body {
+        padding-left: var(--sidebar-width);
+        padding-top: var(--header-height);
+        padding-bottom: 0;
+        background: radial-gradient(circle at top right, #1e3a8a, #0f172a);
+        overflow-y: overlay;
+    }
+
+    header {
+        left: var(--sidebar-width);
+        width: calc(100% - var(--sidebar-width));
+        height: var(--header-height);
+        background: rgba(15, 23, 42, 0.9);
+        border-bottom: 1px solid var(--glass-border);
+        justify-content: flex-start;
+        padding: 0 25px;
+        backdrop-filter: blur(20px);
+    }
+    header h1 { font-size: 1.2rem; font-weight: 700; text-align: left; }
+    header .logo { display: none; } /* Header Logo auf Desktop ausblenden, da Sidebar Logo aktiv ist */
+
+    .nav-brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 20px;
+        border-bottom: 1px solid var(--glass-border);
+    }
+    .nav-brand img { width: 32px; height: 32px; border-radius: 8px; }
+    .nav-brand span { font-size: 1rem; font-weight: 800; }
+
+    .bottom-nav {
+        left: 0; top: 0; bottom: 0;
+        width: var(--sidebar-width);
+        height: 100vh;
+        max-width: none;
+        transform: none;
+        flex-direction: column;
+        justify-content: flex-start;
+        border-radius: 0;
+        border-right: 1px solid var(--glass-border);
+        background: rgba(10, 15, 29, 0.95);
+        padding-bottom: 0;
+        backdrop-filter: blur(20px);
+    }
+
+    .nav-item {
+        width: 100%;
+        height: 52px;
+        flex: none;
+        flex-direction: row;
+        justify-content: flex-start;
+        padding: 0 20px;
+        gap: 14px;
+        color: rgba(255,255,255,0.4);
+    }
+    .nav-item span { font-size: 0.9rem; text-transform: none; font-weight: 600; }
+    .nav-item.active { background: rgba(59, 130, 246, 0.1); color: #60a5fa; }
+    .nav-item.active::before {
+        content: ''; position: absolute; left: 0; height: 30%; width: 4px; 
+        background: #3b82f6; border-radius: 0 4px 4px 0;
+    }
+    .nav-item svg { margin-bottom: 0; width: 20px; height: 20px; }
+
+    main {
+        max-width: 1000px;
+        padding: 25px;
+        margin: 0;
+        display: block;
+    }
+
+    /* Fix: Desktop Grid nur anwenden wenn Tab aktiv ist */
+    #tab-today.active {
+        display: grid;
+        grid-template-columns: 300px 1fr;
+        gap: 20px;
+        align-items: start;
+    }
+
+    .search-container {
+        grid-column: 1 / -1;
+        max-width: 450px;
+        margin-bottom: 10px;
+    }
+
+    #tab-today > .card:nth-of-type(1) { margin-top: 0; padding: 20px; }
+    #dailyOverview { margin-top: 0; }
+    #temp { font-size: 2.4rem; margin: 5px 0; }
+    #icon svg { width: 80px; height: 80px; }
+    
+    #hourlyForecastGrid { 
+        display: grid; 
+        grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); 
+        gap: 10px;
+        overflow-x: visible; 
+    }
+
+    .hour, .day {
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        min-width: 0;
+        padding: 15px;
+    }
+
+    .card {
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+    }
 }
