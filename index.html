@@ -16,8 +16,7 @@
 
 <body>
     <header>
-        <img style="display: none;" src="assets/icon.png" class="logo" alt="App Logo">
-        <h1 id="placeName">Lade Wetter...</h1>
+        <h1 style="margin-top: 10px;" id="placeName">Lade Wetter...</h1>
     </header>
 
     <main>
@@ -51,12 +50,40 @@
                     <h2>7-Tage Vorhersage</h2>
                     <div id="dailyForecastGrid"></div>
                 </div>
-                <div style="display: none;" id="hourlyChartContainer" class="card"></div> 
             </section>
 
             <!-- TAB 3: DETAILS -->
             <section id="tab-details" class="tab-content">
                 <div id="specialParamsDashboard"></div>
+
+                <!-- Sonnenstand Visualisierung (Hierher verschoben) -->
+                <div id="sunVisual" class="card" style="text-align:center;">
+                    <h3 style="margin-top:0; font-size:1.1rem; opacity:0.9;">Sonnenverlauf & Tageslicht</h3>
+                    <p style="font-size: 0.85rem; opacity: 0.7; margin-bottom: 20px; line-height: 1.4;">
+                        Diese Grafik zeigt den Pfad der Sonne am Himmel. Der leuchtende Punkt markiert die aktuelle Position zwischen Auf- und Untergang.
+                    </p>
+                    <div class="sun-path-box">
+                        <svg viewBox="0 0 200 100" class="sun-path-svg">
+                            <path d="M 20 80 A 80 60 0 0 1 180 80" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="2" stroke-dasharray="4 4"/>
+                            <circle id="sunCircle" cx="20" cy="80" r="6" fill="#FFDD57" style="filter: drop-shadow(0 0 5px orange); transition: all 0.5s ease; opacity: 0;"/>
+                        </svg>
+                        <div class="sun-times">
+                            <span id="sunPathSunrise">--:--</span>
+                            <span id="sunPathSunset">--:--</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Wetter-Diagramm (Hierher verschoben) -->
+                <div id="hourlyChartContainer" class="card">
+                    <h2 style="margin-top:0; font-size: 1.1rem; opacity: 0.9;">Wetterverlauf (24h)</h2>
+                    <p style="font-size: 0.85rem; opacity: 0.7; margin-bottom: 15px;">
+                        Detaillierte Übersicht der Temperatur- und Niederschlagsentwicklung für die nächsten 24 Stunden.
+                    </p>
+                    <div style="height: 250px;">
+                        <canvas id="hourlyChart"></canvas>
+                    </div>
+                </div> 
             </section>
 
             <!-- TAB 4: INFO -->
@@ -64,17 +91,31 @@
                 <div class="card info-hero">
                     <div id="info-app-icon" class="app-logo-large"></div>
                     <h2 style="margin: 10px 0 5px 0;">FlowWetter</h2>
-                    <span class="version-tag">Version 2.0.0</span>
+                    <span class="version-tag">Version 2.1.0</span>
                 </div>
 
                 <div class="card">
                     <h3 style="margin-top:0; font-size: 1.1rem; opacity: 0.9;">Features</h3>
                     <ul class="info-list">
-                        <li><span class="info-icon" id="info-icon-loc"></span> Präzise Standorterkennung</li>
-                        <li><span class="info-icon" id="info-icon-chart"></span> Interaktive Wetter-Charts</li>
+                        <li><span class="info-icon" id="info-icon-loc"></span> Präzise Standorterkennung & Suche</li>
+                        <li><span class="info-icon" id="info-icon-chart"></span> Interaktive Temperatur-Charts</li>
+                        <li><span class="info-icon" id="info-icon-sun"></span> Sonnenverlauf-Visualisierung</li>
+                        <li><span class="info-icon" id="info-icon-wind"></span> Wind- & Böenvorhersage</li>
+                        <li><span class="info-icon" id="info-icon-alert"></span> Frost- & UV-Warnungen</li>
                         <li><span class="info-icon" id="info-icon-save"></span> Intelligentes Offline-Caching</li>
-                        <li><span class="info-icon" id="info-icon-mobile"></span> Mobile optimiert</li>
+                        <li><span class="info-icon" id="info-icon-mobile"></span> Mobile optimiert (Capacitor)</li>
                     </ul>
+                </div>
+
+                <div class="card">
+                    <h3 style="margin-top:0; font-size: 1.1rem; opacity: 0.9;">Technik & Datenschutz</h3>
+                    <ul class="info-list">
+                        <li><span class="info-icon" id="info-icon-privacy"></span> 100% Werbefrei & kein Tracking</li>
+                        <li><span class="info-icon" id="info-icon-tech"></span> Moderne PWA/Capacitor Technik</li>
+                    </ul>
+                    <p style="font-size: 0.85rem; line-height: 1.5; opacity: 0.7; margin-top: 15px;">
+                        Ihre Privatsphäre ist uns wichtig: Es werden keine persönlichen Daten gesammelt oder geteilt. Die App nutzt moderne Web-Technologien für ein flüssiges Erlebnis ohne unnötigen Ballast.
+                    </p>
                 </div>
 
                 <div class="card">

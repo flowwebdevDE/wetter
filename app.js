@@ -57,6 +57,9 @@ const UI_ICONS = {
     sunrise: () => UI_ICONS.wrap(`<path d="M32 40V28M18 34l3-3m22 3l-3-3M32 20a10 10 0 100 20 10 10 0 000-20zM10 48h44" stroke="#FFDD57" stroke-width="3" stroke-linecap="round"/>`, 24),
     sunset: () => UI_ICONS.wrap(`<path d="M32 28v12M18 34l3 3m22-3l-3 3M32 44a10 10 0 110-20 10 10 0 010 20zM10 48h44" stroke="#FF8C00" stroke-width="3" stroke-linecap="round"/>`, 24),
     frost: () => UI_ICONS.wrap(`<path d="M32 12l20 36H12L32 12z" stroke="#fff" stroke-width="3"/><path d="M32 24v10m0 6h.01" stroke="#fff" stroke-width="4" stroke-linecap="round"/>`, 24),
+    heat: () => UI_ICONS.wrap(`<path d="M32 12l20 36H12L32 12z" stroke="#ffbb33" stroke-width="3"/><path d="M32 24v10m0 6h.01" stroke="#ffbb33" stroke-width="4" stroke-linecap="round"/>`, 24),
+    windWarning: () => UI_ICONS.wrap(`<path d="M32 12l20 36H12L32 12z" stroke="#4af" stroke-width="3"/><path d="M32 24v10m0 6h.01" stroke="#4af" stroke-width="4" stroke-linecap="round"/>`, 24),
+    uvWarning: () => UI_ICONS.wrap(`<path d="M32 12l20 36H12L32 12z" stroke="#af7ac5" stroke-width="3"/><path d="M32 24v10m0 6h.01" stroke="#af7ac5" stroke-width="4" stroke-linecap="round"/>`, 24),
     navToday: () => UI_ICONS.wrap(`<circle cx="32" cy="28" r="12" stroke="currentColor" stroke-width="3"/><path d="M12 48h40" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>`, 28),
     navForecast: () => UI_ICONS.wrap(`<path d="M12 48V20M32 48V32M52 48V40" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>`, 28),
     navDetails: () => UI_ICONS.wrap(`<path d="M10 20h44M10 32h44M10 44h24" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>`, 28),
@@ -64,7 +67,15 @@ const UI_ICONS = {
     featureLoc: () => UI_ICONS.wrap(`<path d="M32 10c-6.6 0-12 5.4-12 12 0 10 12 24 12 24s12-14 12-24c0-6.6-5.4-12-12-12zm0 16c-2.2 0-4-1.8-4-4s1.8-4 4-4 4 1.8 4 4-1.8 4-4 4z" fill="currentColor"/>`, 32),
     featureChart: () => UI_ICONS.wrap(`<path d="M12 48h40M20 48V32M32 48V16M46 48V38" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>`, 32),
     featureSave: () => UI_ICONS.wrap(`<path d="M16 14h26l8 8v28H16V14zm8 0v12h16V14M24 50V34h16v16" stroke="currentColor" stroke-width="4" fill="none"/>`, 32),
-    featureMobile: () => UI_ICONS.wrap(`<path d="M20 10h24a4 4 0 0 1 4 4v36a4 4 0 0 1-4 4H20a4 4 0 0 1-4-4V14a4 4 0 0 1 4-4z" stroke="currentColor" stroke-width="4" fill="none"/><circle cx="32" cy="46" r="2" fill="currentColor"/>`, 32)
+    featureMobile: () => UI_ICONS.wrap(`<path d="M20 10h24a4 4 0 0 1 4 4v36a4 4 0 0 1-4 4H20a4 4 0 0 1-4-4V14a4 4 0 0 1 4-4z" stroke="currentColor" stroke-width="4" fill="none"/><circle cx="32" cy="46" r="2" fill="currentColor"/>`, 32),
+    featureWind: () => UI_ICONS.wrap(`<path d="M10 24h30a8 8 0 1 0-8-8M10 40h40a8 8 0 1 1-8 8" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>`, 32),
+    featureAlert: () => UI_ICONS.wrap(`<path d="M32 10L10 50h44L32 10zm0 14v12m0 6h.01" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>`, 32),
+    featurePrivacy: () => UI_ICONS.wrap(`<path d="M32 10s-16 4-16 14v16c0 10 16 14 16 14s16-4 16-14V24c0-10-16-14-16-14z" stroke="currentColor" stroke-width="4" fill="none"/>`, 32),
+    featureTech: () => UI_ICONS.wrap(`<path d="M16 24l-8 8 8 8M48 24l8 8-8 8M36 12l-8 40" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>`, 32),
+    windArrow: (deg) => UI_ICONS.wrap(`<path d="M32 10l12 40-12-10-12 10z" fill="currentColor" transform="rotate(${deg} 32 32)"/>`, 20),
+    detailPressure: () => UI_ICONS.wrap(`<circle cx="32" cy="32" r="20" stroke="currentColor" stroke-width="3"/><path d="M32 32l12-12" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><circle cx="32" cy="32" r="2" fill="currentColor"/>`, 48),
+    detailDewpoint: () => UI_ICONS.wrap(`<path d="M32 12s-12 14-12 22a12 12 0 1 0 24 0c0-8-12-22-12-22z" fill="#4af"/>`, 48),
+    detailVisibility: () => UI_ICONS.wrap(`<path d="M10 32s10-14 22-14 22 14 22 14-10 14-22 14-22-14-22-14z" stroke="currentColor" stroke-width="3"/><circle cx="32" cy="32" r="6" fill="currentColor"/>`, 48)
 };
 
 const iconForCode = (c, isNight = false) => {
@@ -85,13 +96,32 @@ let searchDebounce = "";
 /**
  * Geolocation Helper - Optimiert für Capacitor/Mobile
  */
-const getPosition = () => {
+const getPosition = async () => {
+    // Prüfen, ob wir in einer Capacitor-Umgebung mit dem Plugin sind
+    if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Geolocation) {
+        const Geolocation = window.Capacitor.Plugins.Geolocation;
+        try {
+            // Berechtigungen explizit prüfen und anfordern
+            const permissions = await Geolocation.checkPermissions();
+            if (permissions.location !== 'granted') {
+                await Geolocation.requestPermissions();
+            }
+            return await Geolocation.getCurrentPosition({
+                enableHighAccuracy: true,
+                timeout: 10000
+            });
+        } catch (e) {
+            throw new Error("Standort-Plugin Fehler: " + e.message);
+        }
+    }
+
+    // Fallback für Browser/Web-Ansicht
     return new Promise((resolve, reject) => {
         if (!navigator.geolocation) return reject(new Error("Geolocation wird nicht unterstützt"));
         navigator.geolocation.getCurrentPosition(resolve, reject, {
-            enableHighAccuracy: true, // Wichtig für mobiles GPS
-            timeout: 10000,           // Verhindert endloses Warten
-            maximumAge: 0             // Keine veralteten Cache-Daten
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 0
         });
     });
 };
@@ -162,7 +192,12 @@ const App = {
             'info-icon-loc': UI_ICONS.featureLoc(),
             'info-icon-chart': UI_ICONS.featureChart(),
             'info-icon-save': UI_ICONS.featureSave(),
-            'info-icon-mobile': UI_ICONS.featureMobile()
+            'info-icon-mobile': UI_ICONS.featureMobile(),
+            'info-icon-sun': UI_ICONS.sun(),
+            'info-icon-wind': UI_ICONS.featureWind(),
+            'info-icon-alert': UI_ICONS.featureAlert(),
+            'info-icon-privacy': UI_ICONS.featurePrivacy(),
+            'info-icon-tech': UI_ICONS.featureTech()
         };
         Object.entries(infoIcons).forEach(([id, svg]) => {
             const el = document.getElementById(id);
@@ -181,11 +216,12 @@ const App = {
     },
 
     async fetchFullWeather(lat, lon, label) {
-        const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,weathercode,sunrise,sunset&timezone=auto`;
+        const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,weathercode,sunrise,sunset,wind_gusts_10m_max,uv_index_max&timezone=auto`;
         try {
             const data = await fetchWithCache(url, 'currentWeatherCache'); // Nutze fetchWithCache
             this.render(data, lat, lon, label);
             Specials.loadDashboard(lat, lon, label);
+            if (typeof renderCharts === 'function') renderCharts(lat, lon);
         } catch (e) { 
             console.error("Wetter-Ladefehler", e);
             const fb = getFallbackLocation();
@@ -220,7 +256,16 @@ const App = {
         let detailsHTML = `<div class="sun-info"><span>${UI_ICONS.sunrise()} ${sunrise}</span> <span>${UI_ICONS.sunset()} ${sunset}</span></div>`;
 
         if (data.daily.temperature_2m_min[1] <= 0) {
-            detailsHTML += `<div class="warning">${UI_ICONS.frost()} Frostwarnung: Auto abdecken!</div>`;
+            detailsHTML += `<div class="warning">${UI_ICONS.frost()} Frostwarnung</div>`;
+        }
+        if (data.daily.temperature_2m_max[0] >= 30 || data.daily.temperature_2m_max[1] >= 30) {
+            detailsHTML += `<div class="warning" style="background: rgba(255, 136, 0, 0.3); border-color: #ff8800;">${UI_ICONS.heat()} Hitzewarnung</div>`;
+        }
+        if (data.daily.wind_gusts_10m_max && (data.daily.wind_gusts_10m_max[0] >= 70 || data.daily.wind_gusts_10m_max[1] >= 70)) {
+            detailsHTML += `<div class="warning" style="background: rgba(68, 170, 255, 0.3); border-color: #4af;">${UI_ICONS.windWarning()} Sturmwarnung</div>`;
+        }
+        if (data.daily.uv_index_max && (data.daily.uv_index_max[0] >= 6 || data.daily.uv_index_max[1] >= 6)) {
+            detailsHTML += `<div class="warning" style="background: rgba(175, 122, 197, 0.3); border-color: #af7ac5;">${UI_ICONS.uvWarning()} UV-Warnung: Hoher UV-Index</div>`;
         }
         document.getElementById('details').innerHTML = detailsHTML;
 
@@ -234,13 +279,13 @@ const App = {
             const date = new Date(data.daily.time[i]);
             const dayName = date.toLocaleDateString('de-DE', { weekday: 'short' });
             const dateStr = date.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' });
+            
             day.innerHTML = `
-                <div style="font-weight:600">${dayName}</div>
-                <div style="font-size:0.75rem; opacity:0.7;">${dateStr}</div>
-                <div>${iconForCode(code)}</div>
-                <div style="font-size:0.8rem">${weatherText(code)}</div>
-                <div style="margin-top:5px"><strong>${data.daily.temperature_2m_max[i]}°</strong> <span style="opacity:0.6">${data.daily.temperature_2m_min[i]}°</span></div>
-                <div style="font-size:0.7rem; color:#4af">${data.daily.precipitation_sum[i]} mm</div>`;
+                <div class="day-info"><strong>${dayName}</strong> <small>${dateStr}</small></div>
+                <div class="day-icon-row">${iconForCode(code)}</div>
+                <div class="day-temp-row"><strong>${data.daily.temperature_2m_max[i]}°</strong> <span>${data.daily.temperature_2m_min[i]}°</span></div>
+                <div class="day-rain-row">${data.daily.precipitation_sum[i]} <small>mm</small></div>
+            `;
             
             day.style.cursor = 'pointer';
             day.onclick = () => {
@@ -300,7 +345,7 @@ const App = {
 
         // Stündliche Daten nachladen/aus Cache holen
         try {
-            const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=temperature_2m,precipitation,weathercode,windspeed_10m&timezone=auto`;
+            const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=temperature_2m,precipitation,weathercode,windspeed_10m,winddirection_10m&timezone=auto`;
             const hourlyData = await fetchWithCache(url, 'hourlyWeatherCache');
             const grid = content.querySelector('.modal-hourly-grid');
             grid.innerHTML = '';
@@ -311,6 +356,7 @@ const App = {
                     const isNight = hour < d.sunrise || hour > d.sunset;
                     const code = hourlyData.hourly.weathercode[i];
                     const windSpeed = hourlyData.hourly.windspeed_10m[i];
+                    const windDeg = hourlyData.hourly.winddirection_10m[i];
                     const windStyle = windSpeed >= 50 ? 'color:#ff4444; font-weight:bold;' : 'opacity:0.8;';
                     const hourItem = document.createElement('div');
                     hourItem.className = 'modal-hour';
@@ -318,7 +364,7 @@ const App = {
                         <div style="font-weight:bold; font-size:0.8rem">${hour}</div>
                         <div class="mini-icon">${iconForCode(code, isNight)}</div>
                         <div style="font-weight:bold">${hourlyData.hourly.temperature_2m[i]}°</div>
-                        <div style="font-size:0.65rem; ${windStyle}">${windSpeed} km/h</div>
+                        <div style="font-size:0.65rem; ${windStyle}">${UI_ICONS.windArrow(windDeg)} ${windSpeed} km/h</div>
                         <div style="font-size:0.65rem; color:#4af">${hourlyData.hourly.precipitation[i]}mm</div>
                     `;
                     grid.appendChild(hourItem);
@@ -345,6 +391,16 @@ const Specials = {
         return this.safeFetchJson(url);
     },
     getValue: function(arr) { return arr && arr.length ? arr[0] : "–"; },
+    getExplanation: function(key) {
+        const info = {
+            uv: "Der UV-Index misst die Sonnenbrandgefahr. Ab Stufe 3 ist Sonnenschutz empfohlen.",
+            pressure: "Der Luftdruck zeigt Wetteränderungen an. Sinkender Druck deutet oft auf Regen hin.",
+            dewpoint: "Der Taupunkt beschreibt die Schwüle. Ab 16°C wird die Luft als drückend empfunden.",
+            visibility: "Die Sichtweite gibt an, wie weit markante Objekte klar erkennbar sind.",
+            snow: "Berechneter Neuschnee in den nächsten Stunden."
+        };
+        return info[key] || "Detaillierte meteorologische Messung für diesen Standort.";
+    },
     render: function(data, label) {
         const h = data.hourly || {};
         const html = `            
@@ -353,23 +409,52 @@ const Specials = {
             <div class="card details-section">
                 <h3 class="details-section-title">Atmosphäre & Sicht</h3>
                 <div class="details-grid-layout">
-                    <div class="detail-item">UV-Index<br><strong>${this.getValue(h.uv_index)}</strong></div>
-                    <div class="detail-item">Luftdruck<br><strong>${this.getValue(h.pressure_msl)} hPa</strong></div>
-                    <div class="detail-item">Taupunkt<br><strong>${this.getValue(h.dewpoint_2m)}°C</strong></div>
-                    <div class="detail-item">Sichtweite<br><strong>${this.getValue(h.visibility)} m</strong></div>
+                    <div class="detail-item" onclick="Specials.showInfo('UV-Index', 'uv')">UV-Index<br><strong>${this.getValue(h.uv_index)}</strong></div>
+                    <div class="detail-item" onclick="Specials.showInfo('Luftdruck', 'pressure')">Luftdruck<br><strong>${this.getValue(h.pressure_msl)} hPa</strong></div>
+                    <div class="detail-item" onclick="Specials.showInfo('Taupunkt', 'dewpoint')">Taupunkt<br><strong>${this.getValue(h.dewpoint_2m)}°C</strong></div>
+                    <div class="detail-item" onclick="Specials.showInfo('Sichtweite', 'visibility')">Sichtweite<br><strong>${this.getValue(h.visibility)} m</strong></div>
                 </div>
             </div>
 
             <div class="card details-section">
                 <h3 class="details-section-title">Schnee & Eis</h3>
                 <div class="details-grid-layout">
-                    <div class="detail-item">Schneefall<br><strong>${this.getValue(h.snowfall)} cm</strong></div>
-                    <div class="detail-item">Schneehöhe<br><strong>${this.getValue(h.snow_height)} cm</strong></div>
+                    <div class="detail-item" onclick="Specials.showInfo('Schneefall', 'snow')">Schneefall<br><strong>${this.getValue(h.snowfall)} cm</strong></div>
+                    <div class="detail-item" onclick="Specials.showInfo('Schneehöhe', 'snow')">Schneehöhe<br><strong>${this.getValue(h.snow_height)} cm</strong></div>
                 </div>
             </div>
         `;
         const container = document.getElementById("specialParamsDashboard");
         if (container) container.innerHTML = html;
+    },
+    showInfo: function(title, key) {
+        const iconMap = {
+            uv: UI_ICONS.sun(),
+            pressure: UI_ICONS.detailPressure(),
+            dewpoint: UI_ICONS.detailDewpoint(),
+            visibility: UI_ICONS.detailVisibility(),
+            snow: UI_ICONS.snow()
+        };
+        const iconHtml = iconMap[key] || "";
+
+        const overlay = document.createElement('div');
+        overlay.className = 'modal-overlay';
+        overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+
+        const content = document.createElement('div');
+        content.className = 'modal-content card';
+        content.style.marginTop = '0';
+        content.innerHTML = `
+            <div style="text-align:right; margin-bottom:-10px"><span style="cursor:pointer; font-size:2rem; line-height:1; opacity:0.6" onclick="this.closest('.modal-overlay').remove()">&times;</span></div>
+            <div style="text-align:center; margin-bottom:15px">${iconHtml}</div>
+            <h2 style="margin-top:0; font-size: 1.2rem; color:#60a5fa; text-align:center">${title}</h2>
+            <p style="margin:10px 0 0; font-size:1rem; line-height:1.6; opacity:0.9; text-align:center">
+                ${this.getExplanation(key)}
+            </p>
+            <button class="info-link-btn" style="margin-top:25px; background: rgba(255,255,255,0.1); width:100%; border:none; color:white; padding:12px; border-radius:12px; cursor:pointer; font-weight:600;" onclick="this.closest('.modal-overlay').remove()">Verstanden</button>
+        `;
+        overlay.appendChild(content);
+        document.body.appendChild(overlay);
     },
     loadDashboard: async function(lat, lon, label) {
         if (lat != null && lon != null) {

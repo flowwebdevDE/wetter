@@ -14,7 +14,7 @@ body {
 body {
     font-family: system-ui, Arial, sans-serif;
     margin: 0;
-    padding-top: 65px;
+    padding-top: 70px;
     padding-bottom: 0;
     background: linear-gradient(135deg, #1e3a8a, #3b82f6);
     background-attachment: fixed;
@@ -28,41 +28,38 @@ header {
     position: fixed;
     top: 0;
     width: 100%;
-    height: 60px;
+    height: 90px; /* Etwas höher für den Verlauf */
     display: flex;
-    align-items: center;
-    justify-content: flex-start; /* Logo links, Titel daneben */
-    padding: 0 16px; /* Abstand zum Rand */
-    background: rgba(255, 255, 255, 0.1);
-    -webkit-backdrop-filter: blur(8px);
-    backdrop-filter: blur(8px);
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.25);
+    align-items: flex-start;
+    padding-top: 25px;
+    justify-content: center; /* Zentriert für einen modernen App-Look auf Mobile */
+    padding: 0 24px;
+    background: linear-gradient(to bottom, rgb(0, 0, 0) 0%, rgba(10, 15, 29, 0.4) 60%, rgba(10, 15, 29, 0) 100%);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    border-bottom: none;
     z-index: 1000;
+    pointer-events: none; /* Damit man durch den unteren Teil des Gradients klicken kann */
+    -webkit-mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+    mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
 }
 
-.logo {
-    display: block;
-    padding: 5px;
-    margin: 0; /* Keine unnötigen Margins */
-    background: white;
-    border-radius: 12px;
-    width: 48px;
-    height: 48px;
-    object-fit: contain;
-    margin-right: 12px; /* Abstand zum Titel */
-    box-shadow: 0 6px 18px rgb(0, 0, 0);
-}
 @media (min-width: 768px) {
-    header { height: 70px; }
-    body { padding-top: 80px; }
+    header { height: 90px; }
+    body { padding-top: 70px; }
 }
 
 /* Header-Title */
 header h1 {
+    pointer-events: auto; /* Titel wieder klickbar machen */
     margin: 0;
     font-size: 1.1rem;
-    text-align: left; /* Titel linksbündig */
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    text-align: center;
     color: white;
+    opacity: 0.95;
 }
 
 main {
@@ -194,12 +191,19 @@ main {
     color: #fff;
 }
 
-#hourlyForecastGrid, #dailyForecastGrid {
+#hourlyForecastGrid {
     display: flex;
     overflow-x: auto;
     gap: 12px;
     padding-bottom: 10px;
 }
+
+#dailyForecastGrid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
 /* Scrollbar-Styling für Desktop */
 #hourlyForecastGrid::-webkit-scrollbar, 
 #dailyForecastGrid::-webkit-scrollbar {
@@ -224,15 +228,26 @@ main {
 }
 
 .day {
-    min-width: 95px;
-    text-align: center;
-    padding: 12px 8px;
-    border-radius: 20px;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    border-radius: 16px;
     background: rgba(255, 255, 255, 0.1);
     flex-shrink: 0;
     transition: transform 0.2s, background 0.2s;
 }
 .day:hover, .hour:hover { background: rgba(255, 255, 255, 0.15); }
+
+.day-info { flex: 1; font-size: 0.95rem; }
+.day-info small { display: block; opacity: 0.6; font-size: 0.75rem; }
+.day-icon-row { flex: 1; display: flex; justify-content: center; }
+.day-icon-row svg { width: 32px; height: 32px; }
+.day-temp-row { flex: 1; text-align: right; font-size: 1rem; }
+.day-temp-row span { opacity: 0.5; font-size: 0.85rem; margin-left: 4px; }
+.day-rain-row { width: 50px; text-align: right; color: #4af; font-size: 0.8rem; font-weight: 600; }
+.day-rain-row small { font-size: 0.6rem; opacity: 0.8; }
 
 #icon { text-align: center; }
 #icon svg { width: 120px; height: 120px; }
@@ -243,6 +258,24 @@ main {
 .warning { background: rgba(239, 68, 68, 0.3); border: 1px solid #ef4444; padding: 10px; border-radius: 12px; margin-top: 15px; text-align: center; font-weight: bold; }
 .sun-info svg, .warning svg { vertical-align: middle; margin-right: 5px; }
 .mini-icon svg { width: 40px; height: 40px; }
+
+/* Sonnenverlauf Schaubild */
+.sun-path-box { position: relative; padding: 10px 0; }
+.sun-path-svg { width: 100%; max-width: 300px; height: auto; margin: 0 auto; display: block; }
+.sun-times {
+    display: flex;
+    justify-content: space-between;
+    max-width: 300px;
+    margin: -15px auto 0;
+    font-size: 0.75rem;
+    font-weight: bold;
+    opacity: 0.7;
+}
+
+#hourlyChart {
+    max-height: 300px;
+    width: 100% !important;
+}
 
 #offlineNotice { color: #ffdddd; background: rgba(0, 0, 0, 0.25); padding: 10px; border-radius: 10px; margin-top: 12px; font-weight: 700; }
 
@@ -286,8 +319,16 @@ main {
     padding: 15px;
     text-align: center;
     font-size: 0.9rem;
+    cursor: pointer;
+    transition: transform 0.2s, background 0.2s;
 }
+.detail-item:active { transform: scale(0.95); background: rgba(255,255,255,0.1); }
 .detail-item strong { display: block; margin-top: 5px; font-size: 1.2rem; }
+
+@keyframes slideIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
 
 /* Info Tab Refinement */
 .info-hero {
@@ -413,15 +454,23 @@ main {
     header {
         left: var(--sidebar-width);
         width: calc(100% - var(--sidebar-width));
-        height: var(--header-height);
-        background: rgba(15, 23, 42, 0.9);
-        border-bottom: 1px solid var(--glass-border);
+        height: 100px;
+        background: linear-gradient(to bottom, rgba(10, 15, 29, 0.95) 0%, rgba(10, 15, 29, 0) 100%);
+        border-bottom: none;
         justify-content: flex-start;
-        padding: 0 25px;
-        backdrop-filter: blur(20px);
+        padding: 30px 40px 0 40px;
+        backdrop-filter: blur(15px);
+        box-shadow: none; /* Im Desktop-Modus kein Schatten nötig */
+        -webkit-mask-image: linear-gradient(to bottom, black 50%, transparent 100%);
+        mask-image: linear-gradient(to bottom, black 50%, transparent 100%);
     }
-    header h1 { font-size: 1.2rem; font-weight: 700; text-align: left; }
-    header .logo { display: none; } /* Header Logo auf Desktop ausblenden, da Sidebar Logo aktiv ist */
+    header h1 { 
+        font-size: 1.5rem; 
+        font-weight: 900; 
+        text-align: left; 
+        text-transform: none; 
+        letter-spacing: -0.03em;
+    }
 
     .nav-brand {
         display: flex;

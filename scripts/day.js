@@ -1,5 +1,5 @@
 async function renderDailyOverview(lat, lon, sunriseStr, sunsetStr) {
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=temperature_2m,precipitation,weathercode,windspeed_10m&timezone=auto`;
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=temperature_2m,precipitation,weathercode,windspeed_10m,winddirection_10m&timezone=auto`;
     let data;
     try {
         data = await fetchWithCache(url, 'hourlyWeatherCache');
@@ -49,10 +49,11 @@ async function renderDailyOverview(lat, lon, sunriseStr, sunsetStr) {
         const night = (hour < sunrise || hour > sunset);
         const code = data.hourly.weathercode[i]; // weatherText ist global in app.js definiert
         const windSpeed = data.hourly.windspeed_10m[i];
+        const windDeg = data.hourly.winddirection_10m[i];
         const windStyle = windSpeed >= 50 ? 'color:#ff4444; font-weight:bold;' : 'opacity:0.8;';
         const hourDiv = document.createElement('div'); 
         hourDiv.className = 'hour';
-        hourDiv.innerHTML = `<div style="font-size:0.75rem; opacity:0.7;">${dateStr}</div><div><strong>${hourStr}</strong></div><div class="mini-icon">${iconForCode(code, night)}</div><div style="font-weight:bold;">${data.hourly.temperature_2m[i]}°C</div><div style="font-size:0.8rem; ${windStyle}">Wind: ${windSpeed} km/h</div>`;
+        hourDiv.innerHTML = `<div style="font-size:0.75rem; opacity:0.7;">${dateStr}</div><div><strong>${hourStr}</strong></div><div class="mini-icon">${iconForCode(code, night)}</div><div style="font-weight:bold;">${data.hourly.temperature_2m[i]}°C</div><div style="font-size:0.8rem; ${windStyle}">Wind: ${UI_ICONS.windArrow(windDeg)} ${windSpeed} km/h</div>`;
         grid.appendChild(hourDiv);
     }
 }
