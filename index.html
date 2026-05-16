@@ -15,11 +15,19 @@
 </head>
 
 <body>
-    <header>
-        <h1 style="margin-top: 10px;" id="placeName">Lade Wetter...</h1>
-    </header>
+    <header></header>
 
     <main>
+        <div class="location-hero">
+            <div id="header-location-row">
+                <span id="header-loc-icon"></span>
+                <h1 id="placeName">Lade Wetter...</h1>
+            </div>
+            <div id="header-date"></div>
+        </div>
+
+        <div id="offlineNotice" class="card" style="display:none; background: rgba(220, 38, 38, 0.4); border: 1px solid rgba(220, 38, 38, 0.2); color: white; text-align: center; margin-bottom: 16px; font-weight: 600;"></div>
+
         <div id="weather" style="display:none">
             <!-- TAB 1: HEUTE -->
             <section id="tab-today" class="tab-content active">
@@ -91,7 +99,7 @@
                 <div class="card info-hero">
                     <div id="info-app-icon" class="app-logo-large"></div>
                     <h2 style="margin: 10px 0 5px 0;">FlowWetter</h2>
-                    <span class="version-tag">Version 2.1.0</span>
+                    <span class="version-tag">Version 2.3.0</span>
                 </div>
 
                 <div class="card">
@@ -161,8 +169,6 @@
             <span>Info</span>
         </div>
     </nav>
-
-    <div id="offlineNotice" class="card" style="display:none;margin-top:12px;color:#c33;font-weight:600"></div>
 </body>
 
 </html>

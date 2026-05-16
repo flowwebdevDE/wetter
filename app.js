@@ -11,7 +11,9 @@ window.showToast = (msg, duration = 3000) => {
         container = document.createElement('div');
         container.id = 'toast-container';
         Object.assign(container.style, {
-            position: 'fixed', bottom: '100px', left: '50%', transform: 'translateX(-50%)',
+            position: 'fixed', 
+            bottom: '110px', /* Etwas höher wegen der schwebenden Nav */
+            left: '50%', transform: 'translateX(-50%)',
             zIndex: '10000', pointerEvents: 'none', width: 'max-content', maxWidth: '80%'
         });
         document.body.appendChild(container);
@@ -75,7 +77,8 @@ const UI_ICONS = {
     windArrow: (deg) => UI_ICONS.wrap(`<path d="M32 10l12 40-12-10-12 10z" fill="currentColor" transform="rotate(${deg} 32 32)"/>`, 20),
     detailPressure: () => UI_ICONS.wrap(`<circle cx="32" cy="32" r="20" stroke="currentColor" stroke-width="3"/><path d="M32 32l12-12" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><circle cx="32" cy="32" r="2" fill="currentColor"/>`, 48),
     detailDewpoint: () => UI_ICONS.wrap(`<path d="M32 12s-12 14-12 22a12 12 0 1 0 24 0c0-8-12-22-12-22z" fill="#4af"/>`, 48),
-    detailVisibility: () => UI_ICONS.wrap(`<path d="M10 32s10-14 22-14 22 14 22 14-10 14-22 14-22-14-22-14z" stroke="currentColor" stroke-width="3"/><circle cx="32" cy="32" r="6" fill="currentColor"/>`, 48)
+    detailVisibility: () => UI_ICONS.wrap(`<path d="M10 32s10-14 22-14 22 14 22 14-10 14-22 14-22-14-22-14z" stroke="currentColor" stroke-width="3"/><circle cx="32" cy="32" r="6" fill="currentColor"/>`, 48),
+    detailHumidity: () => UI_ICONS.wrap(`<path d="M32 12s-12 14-12 22a12 12 0 1 0 24 0c0-8-12-22-12-22z" fill="#74b9ff"/>`, 48)
 };
 
 const iconForCode = (c, isNight = false) => {
@@ -210,13 +213,16 @@ const App = {
                 document.querySelectorAll('.nav-item, .tab-content').forEach(el => el.classList.remove('active'));
                 btn.classList.add('active');
                 document.getElementById(btn.dataset.tab).classList.add('active');
+                
+                if (window.myChart) window.myChart.resize();
+                
                 window.scrollTo(0, 0);
             };
         });
     },
 
     async fetchFullWeather(lat, lon, label) {
-        const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,weathercode,sunrise,sunset,wind_gusts_10m_max,uv_index_max&timezone=auto`;
+        const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&hourly=relative_humidity_2m&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,weathercode,sunrise,sunset,wind_gusts_10m_max,uv_index_max&timezone=auto`;
         try {
             const data = await fetchWithCache(url, 'currentWeatherCache'); // Nutze fetchWithCache
             this.render(data, lat, lon, label);
@@ -239,7 +245,13 @@ const App = {
 
         document.getElementById('icon').innerHTML = iconForCode(cw.weathercode);
         document.getElementById('temp').innerHTML = `${cw.temperature}°C`;
-        document.getElementById('currentSummary').innerHTML = `<strong>${weatherText(cw.weathercode)}</strong><br>Wind: ${cw.windspeed} km/h`;
+        
+        let humidityStr = "";
+        if (data.hourly && data.hourly.relative_humidity_2m) {
+            const nowHour = new Date().getHours();
+            humidityStr = ` | Feuchte: ${data.hourly.relative_humidity_2m[nowHour]}%`;
+        }
+        document.getElementById('currentSummary').innerHTML = `<strong>${weatherText(cw.weathercode)}</strong><br>Wind: ${cw.windspeed} km/h${humidityStr}`;
 
         // Standardort-Button Logik
         const saveBtn = document.getElementById('saveDefaultBtn');
@@ -381,14 +393,10 @@ const loadWeather = (lat, lon, label) => App.fetchFullWeather(lat, lon, label); 
 
 // ================= Specials Dashboard =================
 const Specials = {
-    safeFetchJson: async function(url, cacheKey) { // cacheKey hinzugefügt
-        const res = await fetch(url);
-        if (!res.ok) throw new Error("HTTP " + res.status);
-        return await res.json();
-    },
     getSpecialData: async function(lat, lon) {
-        const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=uv_index,pressure_msl,dewpoint_2m,visibility,snowfall,snow_height&timezone=auto`;
-        return this.safeFetchJson(url);
+        const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=uv_index,pressure_msl,dewpoint_2m,visibility,snowfall,snow_height,relative_humidity_2m&timezone=auto`;
+        // Nutzt die globale fetchWithCache Funktion aus charts.js
+        return fetchWithCache(url, 'specialsWeatherCache');
     },
     getValue: function(arr) { return arr && arr.length ? arr[0] : "–"; },
     getExplanation: function(key) {
@@ -397,7 +405,8 @@ const Specials = {
             pressure: "Der Luftdruck zeigt Wetteränderungen an. Sinkender Druck deutet oft auf Regen hin.",
             dewpoint: "Der Taupunkt beschreibt die Schwüle. Ab 16°C wird die Luft als drückend empfunden.",
             visibility: "Die Sichtweite gibt an, wie weit markante Objekte klar erkennbar sind.",
-            snow: "Berechneter Neuschnee in den nächsten Stunden."
+            snow: "Berechneter Neuschnee in den nächsten Stunden.",
+            humidity: "Die relative Luftfeuchtigkeit gibt an, wie viel Wasserdampf die Luft im Verhältnis zum Sättigungszustand enthält."
         };
         return info[key] || "Detaillierte meteorologische Messung für diesen Standort.";
     },
@@ -409,6 +418,7 @@ const Specials = {
             <div class="card details-section">
                 <h3 class="details-section-title">Atmosphäre & Sicht</h3>
                 <div class="details-grid-layout">
+                    <div class="detail-item" onclick="Specials.showInfo('Luftfeuchte', 'humidity')">Feuchte<br><strong>${this.getValue(h.relative_humidity_2m)}%</strong></div>
                     <div class="detail-item" onclick="Specials.showInfo('UV-Index', 'uv')">UV-Index<br><strong>${this.getValue(h.uv_index)}</strong></div>
                     <div class="detail-item" onclick="Specials.showInfo('Luftdruck', 'pressure')">Luftdruck<br><strong>${this.getValue(h.pressure_msl)} hPa</strong></div>
                     <div class="detail-item" onclick="Specials.showInfo('Taupunkt', 'dewpoint')">Taupunkt<br><strong>${this.getValue(h.dewpoint_2m)}°C</strong></div>
@@ -433,6 +443,7 @@ const Specials = {
             pressure: UI_ICONS.detailPressure(),
             dewpoint: UI_ICONS.detailDewpoint(),
             visibility: UI_ICONS.detailVisibility(),
+            humidity: UI_ICONS.detailHumidity(),
             snow: UI_ICONS.snow()
         };
         const iconHtml = iconMap[key] || "";

@@ -175,6 +175,6 @@ function showOffline(timestamp) {
     const box = document.getElementById('offlineNotice');
     if (box) {
         box.style.display = 'block';
-        box.textContent = `Offline-Modus – Datenstand: ${timestamp}`;
+        box.innerHTML = `<span style="font-size: 0.8rem; opacity: 0.8;">Offline-Modus</span><br>Stand: ${timestamp}`;
     }
 }
