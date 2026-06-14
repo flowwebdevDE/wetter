@@ -26,36 +26,55 @@
             <div id="header-date"></div>
         </div>
 
-        <div id="offlineNotice" class="card" style="display:none; background: rgba(220, 38, 38, 0.4); border: 1px solid rgba(220, 38, 38, 0.2); color: white; text-align: center; margin-bottom: 16px; font-weight: 600;"></div>
+        <div id="offlineNotice" class="notice" hidden></div>
 
-        <div id="weather" style="display:none">
+        <div id="weather" hidden>
             <!-- TAB 1: HEUTE -->
             <section id="tab-today" class="tab-content active">
                 <!-- Suche nur in der Heute-Ansicht -->
                 <div class="search-container">
-                    <input id="searchBox" placeholder="Ort suchen..." autocomplete="off" type="text">
+                    <div class="search-field">
+                        <span class="search-icon" aria-hidden="true"></span>
+                        <input id="searchBox" placeholder="Ort suchen..." autocomplete="off" type="text">
+                    </div>
                     <div id="suggestionsList"></div>
                     <button id="geoBtn">Standort nutzen</button>
                 </div>
 
-                <div class="card">
-                    <p id="icon"></p>
-                    <h2 id="temp">-</h2>
-                    <div id="currentSummary"></div>
-                    <div id="details"></div> 
-                    <button id="saveDefaultBtn" class="secondary-btn" style="margin-top: 20px; width: 100%; display: none; background: rgba(255,255,255,0.2); border: none; color: white; padding: 12px; border-radius: 16px; cursor: pointer; font-weight: bold;">Als Standardort speichern</button>
+                <div class="card current-card">
+                    <div class="current-main">
+                        <p id="icon"></p>
+                        <div class="current-copy">
+                            <h2 id="temp">-</h2>
+                            <div id="currentSummary"></div>
+                        </div>
+                    </div>
+                    <div id="weatherInsights" class="insight-grid"></div>
+                    <div id="details" class="details-strip"></div>
+                    <button id="saveDefaultBtn" class="secondary-btn">Als Standardort speichern</button>
                 </div>
 
-                <div id="dailyOverview" class="card">
-                    <h2>Stündliche Übersicht</h2>
+                <div id="dailyOverview" class="card forecast-panel">
+                    <div class="section-heading">
+                        <div>
+                            <h2>24-Stunden Überblick</h2>
+                            <p>Temperatur, Regen und Wind im Tagesverlauf.</p>
+                        </div>
+                        <span id="hourlyRange" class="section-meta"></span>
+                    </div>
                     <div id="hourlyForecastGrid"></div>
                 </div>
             </section>
 
             <!-- TAB 2: TREND -->
             <section id="tab-forecast" class="tab-content">
-                <div class="card">
-                    <h2>7-Tage Vorhersage</h2>
+                <div class="card forecast-panel">
+                    <div class="section-heading">
+                        <div>
+                            <h2>7-Tage-Trend</h2>
+                            <p>Maximalwerte, Tiefstwerte und Niederschlag im Vergleich.</p>
+                        </div>
+                    </div>
                     <div id="dailyForecastGrid"></div>
                 </div>
             </section>
@@ -65,15 +84,14 @@
                 <div id="specialParamsDashboard"></div>
 
                 <!-- Sonnenstand Visualisierung (Hierher verschoben) -->
-                <div id="sunVisual" class="card" style="text-align:center;">
-                    <h3 style="margin-top:0; font-size:1.1rem; opacity:0.9;">Sonnenverlauf & Tageslicht</h3>
-                    <p style="font-size: 0.85rem; opacity: 0.7; margin-bottom: 20px; line-height: 1.4;">
-                        Diese Grafik zeigt den Pfad der Sonne am Himmel. Der leuchtende Punkt markiert die aktuelle Position zwischen Auf- und Untergang.
-                    </p>
+                <div id="sunVisual" class="card sun-card">
+                    <div class="section-heading compact">
+                        <h3>Sonnenverlauf & Tageslicht</h3>
+                    </div>
                     <div class="sun-path-box">
                         <svg viewBox="0 0 200 100" class="sun-path-svg">
-                            <path d="M 20 80 A 80 60 0 0 1 180 80" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="2" stroke-dasharray="4 4"/>
-                            <circle id="sunCircle" cx="20" cy="80" r="6" fill="#FFDD57" style="filter: drop-shadow(0 0 5px orange); transition: all 0.5s ease; opacity: 0;"/>
+                            <path class="sun-arc" d="M 20 80 A 80 60 0 0 1 180 80"/>
+                            <circle id="sunCircle" cx="20" cy="80" r="6" fill="#FFDD57"/>
                         </svg>
                         <div class="sun-times">
                             <span id="sunPathSunrise">--:--</span>
@@ -83,12 +101,11 @@
                 </div>
 
                 <!-- Wetter-Diagramm (Hierher verschoben) -->
-                <div id="hourlyChartContainer" class="card">
-                    <h2 style="margin-top:0; font-size: 1.1rem; opacity: 0.9;">Wetterverlauf (24h)</h2>
-                    <p style="font-size: 0.85rem; opacity: 0.7; margin-bottom: 15px;">
-                        Detaillierte Übersicht der Temperatur- und Niederschlagsentwicklung für die nächsten 24 Stunden.
-                    </p>
-                    <div style="height: 250px;">
+                <div id="hourlyChartContainer" class="card chart-card">
+                    <div class="section-heading compact">
+                        <h2>Wetterverlauf (24h)</h2>
+                    </div>
+                    <div class="chart-frame">
                         <canvas id="hourlyChart"></canvas>
                     </div>
                 </div> 
@@ -98,12 +115,12 @@
             <section id="tab-info" class="tab-content">
                 <div class="card info-hero">
                     <div id="info-app-icon" class="app-logo-large"></div>
-                    <h2 style="margin: 10px 0 5px 0;">FlowWetter</h2>
-                    <span class="version-tag">Version 2.3.0</span>
+                    <h2>FlowWetter</h2>
+                    <span class="version-tag">Version 2.4.b</span>
                 </div>
 
                 <div class="card">
-                    <h3 style="margin-top:0; font-size: 1.1rem; opacity: 0.9;">Features</h3>
+                    <h3>Features</h3>
                     <ul class="info-list">
                         <li><span class="info-icon" id="info-icon-loc"></span> Präzise Standorterkennung & Suche</li>
                         <li><span class="info-icon" id="info-icon-chart"></span> Interaktive Temperatur-Charts</li>
@@ -116,19 +133,19 @@
                 </div>
 
                 <div class="card">
-                    <h3 style="margin-top:0; font-size: 1.1rem; opacity: 0.9;">Technik & Datenschutz</h3>
+                    <h3>Technik & Datenschutz</h3>
                     <ul class="info-list">
                         <li><span class="info-icon" id="info-icon-privacy"></span> 100% Werbefrei & kein Tracking</li>
                         <li><span class="info-icon" id="info-icon-tech"></span> Moderne PWA/Capacitor Technik</li>
                     </ul>
-                    <p style="font-size: 0.85rem; line-height: 1.5; opacity: 0.7; margin-top: 15px;">
+                    <p class="muted-copy">
                         Ihre Privatsphäre ist uns wichtig: Es werden keine persönlichen Daten gesammelt oder geteilt. Die App nutzt moderne Web-Technologien für ein flüssiges Erlebnis ohne unnötigen Ballast.
                     </p>
                 </div>
 
                 <div class="card">
-                    <h3 style="margin-top:0; font-size: 1.1rem; opacity: 0.9;">Datenquelle</h3>
-                    <p style="font-size: 0.9rem; line-height: 1.6; opacity: 0.8; margin-bottom: 15px;">
+                    <h3>Datenquelle</h3>
+                    <p class="muted-copy">
                         Wir nutzen die <strong>Open-Meteo API</strong> für weltweit präzise Wetterdaten – ohne Tracking und völlig werbefrei.
                     </p>
                     <a href="https://open-meteo.com/" target="_blank" class="info-link-btn">Open-Meteo Website</a>
@@ -136,13 +153,13 @@
 
                 <div class="footer-note">
                     <p class="herz">Entwickelt mit ❤️ in Baden-Württemberg</p>
-                    <p style="font-size: 0.7rem; opacity: 0.4; margin-top: 8px;">© 2026 FlowWebDesign • FlowWetter</p>
+                    <p class="copyright">© 2026 FlowWebDesign • FlowWetter</p>
                 </div>
             </section>
         </div>
     </main>
 
-    <button id="installBtn" style="display:none;margin-top:12px">📱 App installieren</button>
+    <button id="installBtn">App installieren</button>
     <script src="app.js"></script>
 
     <!-- BOTTOM NAVIGATION -->

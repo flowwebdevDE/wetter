@@ -94,6 +94,175 @@ const iconForCode = (c, isNight = false) => {
 
 const weatherText = WEATHER_CONFIG.text;
 
+const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+const isNumber = (value) => typeof value === "number" && Number.isFinite(value);
+const formatNumber = (value, digits = 0) => isNumber(value) ? value.toFixed(digits).replace(".0", "") : "–";
+const formatTemp = (value) => isNumber(value) ? `${formatNumber(value)}°` : "–";
+const formatMetric = (value, unit = "", digits = 0) => isNumber(value) ? `${formatNumber(value, digits)}${unit}` : "–";
+
+function getHourlyIndex(hourly, timezone) {
+    if (!hourly || !Array.isArray(hourly.time) || hourly.time.length === 0) return 0;
+    const now = new Date(new Date().toLocaleString("en-US", { timeZone: timezone || Intl.DateTimeFormat().resolvedOptions().timeZone }));
+    const times = hourly.time.map(t => new Date(t));
+    const exact = times.findIndex(t =>
+        t.getFullYear() === now.getFullYear() &&
+        t.getMonth() === now.getMonth() &&
+        t.getDate() === now.getDate() &&
+        t.getHours() === now.getHours()
+    );
+    if (exact >= 0) return exact;
+    const next = times.findIndex(t => t > now);
+    return next >= 0 ? next : 0;
+}
+
+function getHourlyValue(hourly, key, index) {
+    const value = hourly && hourly[key] ? hourly[key][index] : null;
+    return isNumber(value) ? value : null;
+}
+
+function getLevel(type, value, context = {}) {
+    if (!isNumber(value)) return { label: "keine Daten", tone: "neutral", meter: 0 };
+
+    if (type === "temp") {
+        if (value <= 0) return { label: "frostig", tone: "risk", meter: 18 };
+        if (value < 9) return { label: "kühl", tone: "watch", meter: 35 };
+        if (value <= 25) return { label: "angenehm", tone: "good", meter: 62 };
+        if (value < 30) return { label: "warm", tone: "watch", meter: 78 };
+        return { label: "heiß", tone: "risk", meter: 95 };
+    }
+
+    if (type === "rain") {
+        const probability = context.probability;
+        const rainScore = isNumber(probability) ? Math.max(value * 8, probability) : value * 12;
+        if (rainScore >= 70 || value >= 10) return { label: "hoch", tone: "risk", meter: clamp(rainScore, 0, 100) };
+        if (rainScore >= 30 || value >= 2) return { label: "möglich", tone: "watch", meter: clamp(rainScore, 0, 100) };
+        return { label: "gering", tone: "good", meter: clamp(Math.max(rainScore, 8), 0, 100) };
+    }
+
+    if (type === "wind") {
+        if (value >= 70) return { label: "stürmisch", tone: "risk", meter: 95 };
+        if (value >= 40) return { label: "kräftig", tone: "watch", meter: 68 };
+        return { label: "ruhig", tone: "good", meter: clamp(value * 1.25, 8, 52) };
+    }
+
+    if (type === "uv") {
+        if (value >= 6) return { label: "hoch", tone: "risk", meter: 88 };
+        if (value >= 3) return { label: "mittel", tone: "watch", meter: 58 };
+        return { label: "niedrig", tone: "good", meter: 22 };
+    }
+
+    if (type === "humidity") {
+        if (value >= 75) return { label: "schwül", tone: "watch", meter: 82 };
+        if (value <= 30) return { label: "trocken", tone: "watch", meter: 28 };
+        return { label: "komfortabel", tone: "good", meter: clamp(value, 15, 80) };
+    }
+
+    return { label: "normal", tone: "neutral", meter: 50 };
+}
+
+function renderInsightCard({ label, value, unit, digits = 0, level, caption, icon }) {
+    const display = formatMetric(value, unit, digits);
+    return `
+        <div class="insight-card ${level.tone}" style="--meter:${level.meter}%">
+            <div class="insight-top">
+                <span>${icon || ""}${label}</span>
+                <span class="level-chip">${level.label}</span>
+            </div>
+            <strong>${display}</strong>
+            <span class="metric-meter" aria-hidden="true"><span></span></span>
+            <small>${caption}</small>
+        </div>
+    `;
+}
+
+function renderWeatherInsights({ apparent, humidity, rainToday, rainProbability, wind, gusts, uv, minTemp, maxTemp }) {
+    return [
+        renderInsightCard({
+            label: "Gefühlt",
+            value: apparent,
+            unit: "°",
+            level: getLevel("temp", apparent),
+            caption: `Heute ${formatTemp(minTemp)} bis ${formatTemp(maxTemp)}`,
+            icon: UI_ICONS.detailDewpoint()
+        }),
+        renderInsightCard({
+            label: "Regen",
+            value: isNumber(rainProbability) ? rainProbability : rainToday,
+            unit: isNumber(rainProbability) ? "%" : " mm",
+            digits: isNumber(rainProbability) ? 0 : 1,
+            level: getLevel("rain", rainToday || 0, { probability: rainProbability }),
+            caption: `${formatMetric(rainToday, " mm", 1)} heute`,
+            icon: UI_ICONS.rain()
+        }),
+        renderInsightCard({
+            label: "Wind",
+            value: gusts ?? wind,
+            unit: " km/h",
+            level: getLevel("wind", gusts ?? wind),
+            caption: isNumber(gusts) ? `Böen, aktuell ${formatMetric(wind, " km/h")}` : "Aktuelle Windgeschwindigkeit",
+            icon: UI_ICONS.featureWind()
+        }),
+        renderInsightCard({
+            label: "UV",
+            value: uv,
+            level: getLevel("uv", uv),
+            caption: "Tagesmaximum",
+            icon: UI_ICONS.sun()
+        }),
+        renderInsightCard({
+            label: "Feuchte",
+            value: humidity,
+            unit: "%",
+            level: getLevel("humidity", humidity),
+            caption: "relative Luftfeuchte",
+            icon: UI_ICONS.detailHumidity()
+        })
+    ].join("");
+}
+
+function renderSunAndWarnings(data) {
+    const sunrise = data.daily.sunrise[0].split("T")[1];
+    const sunset = data.daily.sunset[0].split("T")[1];
+    const warnings = [];
+
+    if (data.daily.temperature_2m_min[1] <= 0) {
+        warnings.push({ tone: "risk", icon: UI_ICONS.frost(), title: "Frost möglich", text: "Tiefstwert morgen bei " + formatTemp(data.daily.temperature_2m_min[1]) });
+    }
+    if (data.daily.temperature_2m_max[0] >= 30 || data.daily.temperature_2m_max[1] >= 30) {
+        warnings.push({ tone: "risk", icon: UI_ICONS.heat(), title: "Hitze", text: "Maximalwert bis " + formatTemp(Math.max(data.daily.temperature_2m_max[0], data.daily.temperature_2m_max[1])) });
+    }
+    if (data.daily.wind_gusts_10m_max && (data.daily.wind_gusts_10m_max[0] >= 70 || data.daily.wind_gusts_10m_max[1] >= 70)) {
+        warnings.push({ tone: "watch", icon: UI_ICONS.windWarning(), title: "Starke Böen", text: "Böen bis " + formatMetric(Math.max(data.daily.wind_gusts_10m_max[0], data.daily.wind_gusts_10m_max[1]), " km/h") });
+    }
+    if (data.daily.uv_index_max && (data.daily.uv_index_max[0] >= 6 || data.daily.uv_index_max[1] >= 6)) {
+        warnings.push({ tone: "watch", icon: UI_ICONS.uvWarning(), title: "Hoher UV-Index", text: "Maximum " + formatMetric(Math.max(data.daily.uv_index_max[0], data.daily.uv_index_max[1])) });
+    }
+
+    const warningHtml = warnings.length
+        ? warnings.map(item => `
+            <div class="warning ${item.tone}">
+                <span>${item.icon}</span>
+                <div><strong>${item.title}</strong><small>${item.text}</small></div>
+            </div>
+        `).join("")
+        : `<div class="daily-note good"><strong>Unauffällig</strong><small>Keine markanten Wetterwarnungen in den nächsten 24 Stunden.</small></div>`;
+
+    return `
+        <div class="sun-info">
+            <span>${UI_ICONS.sunrise()}<strong>${sunrise}</strong><small>Aufgang</small></span>
+            <span>${UI_ICONS.sunset()}<strong>${sunset}</strong><small>Untergang</small></span>
+        </div>
+        <div class="warning-list">${warningHtml}</div>
+    `;
+}
+
+function getTempRangeStyle(min, max, weekMin, weekMax) {
+    const range = Math.max(1, weekMax - weekMin);
+    const left = clamp(((min - weekMin) / range) * 100, 0, 100);
+    const width = clamp(((max - min) / range) * 100, 8, 100 - left);
+    return `--range-left:${left}%; --range-width:${width}%;`;
+}
+
 let searchDebounce = "";
 
 /**
@@ -222,7 +391,7 @@ const App = {
     },
 
     async fetchFullWeather(lat, lon, label) {
-        const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&hourly=relative_humidity_2m&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,weathercode,sunrise,sunset,wind_gusts_10m_max,uv_index_max&timezone=auto`;
+        const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&hourly=relative_humidity_2m,apparent_temperature,precipitation_probability&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,weathercode,sunrise,sunset,wind_gusts_10m_max,uv_index_max&timezone=auto`;
         try {
             const data = await fetchWithCache(url, 'currentWeatherCache'); // Nutze fetchWithCache
             this.render(data, lat, lon, label);
@@ -239,50 +408,56 @@ const App = {
     },
 
     render(data, lat, lon, label) {
-        document.getElementById('weather').style.display = 'block';
+        document.getElementById('weather').hidden = false;
         document.getElementById('placeName').textContent = label || `${lat.toFixed(3)},${lon.toFixed(3)}`;
         const cw = data.current_weather;
+        const hourlyIndex = getHourlyIndex(data.hourly, data.timezone);
+        const humidity = getHourlyValue(data.hourly, "relative_humidity_2m", hourlyIndex);
+        const apparent = getHourlyValue(data.hourly, "apparent_temperature", hourlyIndex) ?? cw.temperature;
+        const rainProbability = getHourlyValue(data.hourly, "precipitation_probability", hourlyIndex);
+        const maxTemp = data.daily.temperature_2m_max[0];
+        const minTemp = data.daily.temperature_2m_min[0];
+        const rainToday = data.daily.precipitation_sum[0] || 0;
+        const gustsToday = data.daily.wind_gusts_10m_max ? data.daily.wind_gusts_10m_max[0] : null;
+        const uvToday = data.daily.uv_index_max ? data.daily.uv_index_max[0] : null;
 
         document.getElementById('icon').innerHTML = iconForCode(cw.weathercode);
-        document.getElementById('temp').innerHTML = `${cw.temperature}°C`;
-        
-        let humidityStr = "";
-        if (data.hourly && data.hourly.relative_humidity_2m) {
-            const nowHour = new Date().getHours();
-            humidityStr = ` | Feuchte: ${data.hourly.relative_humidity_2m[nowHour]}%`;
+        document.getElementById('temp').innerHTML = `${formatTemp(cw.temperature)}`;
+        document.getElementById('currentSummary').innerHTML = `
+            <strong>${weatherText(cw.weathercode)}</strong>
+            <span>Gefühlt ${formatTemp(apparent)} · Wind ${formatMetric(cw.windspeed, " km/h")}${isNumber(humidity) ? ` · Feuchte ${humidity}%` : ""}</span>
+        `;
+        const insights = document.getElementById('weatherInsights');
+        if (insights) {
+            insights.innerHTML = renderWeatherInsights({
+                apparent,
+                humidity,
+                rainToday,
+                rainProbability,
+                wind: cw.windspeed,
+                gusts: gustsToday,
+                uv: uvToday,
+                minTemp,
+                maxTemp
+            });
         }
-        document.getElementById('currentSummary').innerHTML = `<strong>${weatherText(cw.weathercode)}</strong><br>Wind: ${cw.windspeed} km/h${humidityStr}`;
 
         // Standardort-Button Logik
         const saveBtn = document.getElementById('saveDefaultBtn');
         if (saveBtn) {
-            saveBtn.style.display = 'block';
+            saveBtn.classList.add('is-visible');
             saveBtn.onclick = () => {
                 localStorage.setItem('weather_app_default', JSON.stringify({ lat, lon, label }));
                 showToast(`${label} wurde als Standardort gespeichert.`);
             };
         }
 
-        const sunrise = data.daily.sunrise[0].split("T")[1];
-        const sunset = data.daily.sunset[0].split("T")[1];
-        let detailsHTML = `<div class="sun-info"><span>${UI_ICONS.sunrise()} ${sunrise}</span> <span>${UI_ICONS.sunset()} ${sunset}</span></div>`;
-
-        if (data.daily.temperature_2m_min[1] <= 0) {
-            detailsHTML += `<div class="warning">${UI_ICONS.frost()} Frostwarnung</div>`;
-        }
-        if (data.daily.temperature_2m_max[0] >= 30 || data.daily.temperature_2m_max[1] >= 30) {
-            detailsHTML += `<div class="warning" style="background: rgba(255, 136, 0, 0.3); border-color: #ff8800;">${UI_ICONS.heat()} Hitzewarnung</div>`;
-        }
-        if (data.daily.wind_gusts_10m_max && (data.daily.wind_gusts_10m_max[0] >= 70 || data.daily.wind_gusts_10m_max[1] >= 70)) {
-            detailsHTML += `<div class="warning" style="background: rgba(68, 170, 255, 0.3); border-color: #4af;">${UI_ICONS.windWarning()} Sturmwarnung</div>`;
-        }
-        if (data.daily.uv_index_max && (data.daily.uv_index_max[0] >= 6 || data.daily.uv_index_max[1] >= 6)) {
-            detailsHTML += `<div class="warning" style="background: rgba(175, 122, 197, 0.3); border-color: #af7ac5;">${UI_ICONS.uvWarning()} UV-Warnung: Hoher UV-Index</div>`;
-        }
-        document.getElementById('details').innerHTML = detailsHTML;
+        document.getElementById('details').innerHTML = renderSunAndWarnings(data);
 
         const grid = document.getElementById('dailyForecastGrid'); // Umbenannt für Klarheit
         grid.innerHTML = '';
+        const weekMin = Math.min(...data.daily.temperature_2m_min.filter(isNumber));
+        const weekMax = Math.max(...data.daily.temperature_2m_max.filter(isNumber));
 
         for (let i = 0; i < data.daily.time.length; i++) {
             const day = document.createElement('div');
@@ -292,11 +467,15 @@ const App = {
             const dayName = date.toLocaleDateString('de-DE', { weekday: 'short' });
             const dateStr = date.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' });
             
+            const rainLevel = getLevel("rain", data.daily.precipitation_sum[i] || 0);
             day.innerHTML = `
-                <div class="day-info"><strong>${dayName}</strong> <small>${dateStr}</small></div>
-                <div class="day-icon-row">${iconForCode(code)}</div>
-                <div class="day-temp-row"><strong>${data.daily.temperature_2m_max[i]}°</strong> <span>${data.daily.temperature_2m_min[i]}°</span></div>
-                <div class="day-rain-row">${data.daily.precipitation_sum[i]} <small>mm</small></div>
+                <div class="day-info"><strong>${dayName}</strong><small>${dateStr}</small></div>
+                <div class="day-icon-row">${iconForCode(code)}<span>${weatherText(code)}</span></div>
+                <div class="day-temp-row">
+                    <div><strong>${formatTemp(data.daily.temperature_2m_max[i])}</strong><span>${formatTemp(data.daily.temperature_2m_min[i])}</span></div>
+                    <span class="temp-range" style="${getTempRangeStyle(data.daily.temperature_2m_min[i], data.daily.temperature_2m_max[i], weekMin, weekMax)}"><span></span></span>
+                </div>
+                <div class="day-rain-row ${rainLevel.tone}"><strong>${formatMetric(data.daily.precipitation_sum[i], " mm", 1)}</strong><small>${rainLevel.label}</small></div>
             `;
             
             day.style.cursor = 'pointer';
@@ -325,31 +504,30 @@ const App = {
 
         const content = document.createElement('div');
         content.className = 'modal-content card';
-        content.style.marginTop = '0';
         content.innerHTML = `
-            <div style="text-align:right; margin-bottom:-10px"><span style="cursor:pointer; font-size:2rem; line-height:1; opacity:0.6" onclick="this.closest('.modal-overlay').remove()">&times;</span></div>
-            <h2 style="margin-top:0; font-size: 1.4rem; text-align:center">${d.date}</h2>
-            <div style="text-align:center; margin: 25px 0;">
+            <button class="modal-close" type="button" onclick="this.closest('.modal-overlay').remove()" aria-label="Schließen">&times;</button>
+            <h2 class="modal-title">${d.date}</h2>
+            <div class="modal-summary">
                 <div class="modal-icon">${iconForCode(d.code)}</div>
-                <div style="font-size:1.3rem; font-weight:bold; margin-top:10px">${weatherText(d.code)}</div>
+                <strong>${weatherText(d.code)}</strong>
             </div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                <div class="card" style="margin:0; padding:15px; text-align:center; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">
-                    <small style="opacity:0.7">Max</small><br><strong style="font-size:1.2rem">${d.max}°C</strong>
+            <div class="modal-stats">
+                <div class="modal-stat">
+                    <small>Max</small><strong>${formatTemp(d.max)}</strong>
                 </div>
-                <div class="card" style="margin:0; padding:15px; text-align:center; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">
-                    <small style="opacity:0.7">Min</small><br><strong style="font-size:1.2rem">${d.min}°C</strong>
+                <div class="modal-stat">
+                    <small>Min</small><strong>${formatTemp(d.min)}</strong>
                 </div>
-                <div class="card" style="margin:0; padding:15px; text-align:center; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">
-                    <small style="opacity:0.7">Niederschlag</small><br><strong>${d.rain} mm</strong>
+                <div class="modal-stat">
+                    <small>Niederschlag</small><strong>${formatMetric(d.rain, " mm", 1)}</strong>
                 </div>
-                <div class="card" style="margin:0; padding:15px; text-align:center; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">
-                    <small style="opacity:0.7">Sonne</small><br><small style="font-weight:bold">${d.sunrise} - ${d.sunset}</small>
+                <div class="modal-stat">
+                    <small>Sonne</small><strong>${d.sunrise} - ${d.sunset}</strong>
                 </div>
             </div>
-            <h3 style="margin: 25px 0 10px; font-size: 1.1rem; text-align:center; opacity:0.9">Stündlicher Verlauf</h3>
+            <h3 class="modal-subtitle">Stündlicher Verlauf</h3>
             <div class="modal-hourly-grid">
-                <div style="grid-column: 1/-1; text-align:center; padding:20px; opacity:0.6;">Lade stündliche Daten...</div>
+                <div class="modal-loading">Lade stündliche Daten...</div>
             </div>
         `;
         overlay.appendChild(content);
@@ -369,21 +547,22 @@ const App = {
                     const code = hourlyData.hourly.weathercode[i];
                     const windSpeed = hourlyData.hourly.windspeed_10m[i];
                     const windDeg = hourlyData.hourly.winddirection_10m[i];
-                    const windStyle = windSpeed >= 50 ? 'color:#ff4444; font-weight:bold;' : 'opacity:0.8;';
+                    const windLevel = getLevel("wind", windSpeed || 0);
+                    const rain = hourlyData.hourly.precipitation[i] || 0;
                     const hourItem = document.createElement('div');
                     hourItem.className = 'modal-hour';
                     hourItem.innerHTML = `
-                        <div style="font-weight:bold; font-size:0.8rem">${hour}</div>
+                        <div class="modal-hour-time">${hour}</div>
                         <div class="mini-icon">${iconForCode(code, isNight)}</div>
-                        <div style="font-weight:bold">${hourlyData.hourly.temperature_2m[i]}°</div>
-                        <div style="font-size:0.65rem; ${windStyle}">${UI_ICONS.windArrow(windDeg)} ${windSpeed} km/h</div>
-                        <div style="font-size:0.65rem; color:#4af">${hourlyData.hourly.precipitation[i]}mm</div>
+                        <div class="modal-hour-temp">${formatTemp(hourlyData.hourly.temperature_2m[i])}</div>
+                        <div class="modal-hour-wind ${windLevel.tone}">${UI_ICONS.windArrow(windDeg)} ${formatMetric(windSpeed, " km/h")}</div>
+                        <div class="modal-hour-rain">${formatMetric(rain, " mm", 1)}</div>
                     `;
                     grid.appendChild(hourItem);
                 }
             });
         } catch (e) {
-            content.querySelector('.modal-hourly-grid').innerHTML = '<div style="grid-column:1/-1; opacity:0.5">Stündliche Daten nicht verfügbar.</div>';
+            content.querySelector('.modal-hourly-grid').innerHTML = '<div class="modal-loading">Stündliche Daten nicht verfügbar.</div>';
         }
     }
 };
@@ -398,7 +577,59 @@ const Specials = {
         // Nutzt die globale fetchWithCache Funktion aus charts.js
         return fetchWithCache(url, 'specialsWeatherCache');
     },
-    getValue: function(arr) { return arr && arr.length ? arr[0] : "–"; },
+    getValue: function(arr, index = 0) {
+        if (!Array.isArray(arr) || arr.length === 0) return null;
+        const value = arr[index] ?? arr[0];
+        return isNumber(value) ? value : null;
+    },
+    getStatus: function(key, value) {
+        if (key === "uv") return getLevel("uv", value || 0);
+        if (key === "humidity") return getLevel("humidity", value);
+        if (key === "visibility") {
+            if (!isNumber(value)) return { label: "keine Daten", tone: "neutral" };
+            if (value < 2000) return { label: "eingeschränkt", tone: "risk" };
+            if (value < 10000) return { label: "mäßig", tone: "watch" };
+            return { label: "klar", tone: "good" };
+        }
+        if (key === "pressure") {
+            if (!isNumber(value)) return { label: "keine Daten", tone: "neutral" };
+            if (value < 1000) return { label: "tief", tone: "watch" };
+            if (value > 1025) return { label: "hoch", tone: "watch" };
+            return { label: "stabil", tone: "good" };
+        }
+        if (key === "dewpoint") {
+            if (!isNumber(value)) return { label: "keine Daten", tone: "neutral" };
+            if (value >= 18) return { label: "schwül", tone: "watch" };
+            if (value <= 2) return { label: "trocken", tone: "watch" };
+            return { label: "normal", tone: "good" };
+        }
+        if (key === "snow") {
+            if (!isNumber(value) || value === 0) return { label: "kein Schnee", tone: "good" };
+            if (value >= 5) return { label: "viel", tone: "risk" };
+            return { label: "leicht", tone: "watch" };
+        }
+        return { label: "normal", tone: "neutral" };
+    },
+    formatValue: function(key, value) {
+        if (key === "visibility") return isNumber(value) ? `${formatNumber(value / 1000, 1)} km` : "–";
+        if (key === "uv") return formatMetric(value, "", 1);
+        if (key === "pressure") return formatMetric(value, " hPa");
+        if (key === "dewpoint") return formatMetric(value, "°");
+        if (key === "humidity") return formatMetric(value, "%");
+        if (key === "snow") return formatMetric(value, " cm", 1);
+        return formatMetric(value);
+    },
+    renderDetailItem: function(title, key, value, icon) {
+        const status = this.getStatus(key, value);
+        return `
+            <button class="detail-item ${status.tone}" type="button" onclick="Specials.showInfo('${title}', '${key}')">
+                <span class="detail-icon">${icon}</span>
+                <span>${title}</span>
+                <strong>${this.formatValue(key, value)}</strong>
+                <small>${status.label}</small>
+            </button>
+        `;
+    },
     getExplanation: function(key) {
         const info = {
             uv: "Der UV-Index misst die Sonnenbrandgefahr. Ab Stufe 3 ist Sonnenschutz empfohlen.",
@@ -412,25 +643,37 @@ const Specials = {
     },
     render: function(data, label) {
         const h = data.hourly || {};
+        const index = getHourlyIndex(h, data.timezone);
+        const humidity = this.getValue(h.relative_humidity_2m, index);
+        const uv = this.getValue(h.uv_index, index);
+        const pressure = this.getValue(h.pressure_msl, index);
+        const dewpoint = this.getValue(h.dewpoint_2m, index);
+        const visibility = this.getValue(h.visibility, index);
+        const snowfall = this.getValue(h.snowfall, index);
+        const snowHeight = this.getValue(h.snow_height, index);
         const html = `            
-            <h2 style="margin-top:0; font-size: 1.4rem; text-align:center; opacity:0.9;">Detaillierte Wetterdaten</h2>
+            <div class="section-heading">
+                <div>
+                    <h2>Detaillierte Wetterdaten</h2>
+                </div>
+            </div>
 
             <div class="card details-section">
                 <h3 class="details-section-title">Atmosphäre & Sicht</h3>
                 <div class="details-grid-layout">
-                    <div class="detail-item" onclick="Specials.showInfo('Luftfeuchte', 'humidity')">Feuchte<br><strong>${this.getValue(h.relative_humidity_2m)}%</strong></div>
-                    <div class="detail-item" onclick="Specials.showInfo('UV-Index', 'uv')">UV-Index<br><strong>${this.getValue(h.uv_index)}</strong></div>
-                    <div class="detail-item" onclick="Specials.showInfo('Luftdruck', 'pressure')">Luftdruck<br><strong>${this.getValue(h.pressure_msl)} hPa</strong></div>
-                    <div class="detail-item" onclick="Specials.showInfo('Taupunkt', 'dewpoint')">Taupunkt<br><strong>${this.getValue(h.dewpoint_2m)}°C</strong></div>
-                    <div class="detail-item" onclick="Specials.showInfo('Sichtweite', 'visibility')">Sichtweite<br><strong>${this.getValue(h.visibility)} m</strong></div>
+                    ${this.renderDetailItem("Feuchte", "humidity", humidity, UI_ICONS.detailHumidity())}
+                    ${this.renderDetailItem("UV-Index", "uv", uv, UI_ICONS.sun())}
+                    ${this.renderDetailItem("Luftdruck", "pressure", pressure, UI_ICONS.detailPressure())}
+                    ${this.renderDetailItem("Taupunkt", "dewpoint", dewpoint, UI_ICONS.detailDewpoint())}
+                    ${this.renderDetailItem("Sichtweite", "visibility", visibility, UI_ICONS.detailVisibility())}
                 </div>
             </div>
 
             <div class="card details-section">
                 <h3 class="details-section-title">Schnee & Eis</h3>
                 <div class="details-grid-layout">
-                    <div class="detail-item" onclick="Specials.showInfo('Schneefall', 'snow')">Schneefall<br><strong>${this.getValue(h.snowfall)} cm</strong></div>
-                    <div class="detail-item" onclick="Specials.showInfo('Schneehöhe', 'snow')">Schneehöhe<br><strong>${this.getValue(h.snow_height)} cm</strong></div>
+                    ${this.renderDetailItem("Schneefall", "snow", snowfall, UI_ICONS.snow())}
+                    ${this.renderDetailItem("Schneehöhe", "snow", snowHeight, UI_ICONS.snow())}
                 </div>
             </div>
         `;
@@ -454,15 +697,14 @@ const Specials = {
 
         const content = document.createElement('div');
         content.className = 'modal-content card';
-        content.style.marginTop = '0';
         content.innerHTML = `
-            <div style="text-align:right; margin-bottom:-10px"><span style="cursor:pointer; font-size:2rem; line-height:1; opacity:0.6" onclick="this.closest('.modal-overlay').remove()">&times;</span></div>
-            <div style="text-align:center; margin-bottom:15px">${iconHtml}</div>
-            <h2 style="margin-top:0; font-size: 1.2rem; color:#60a5fa; text-align:center">${title}</h2>
-            <p style="margin:10px 0 0; font-size:1rem; line-height:1.6; opacity:0.9; text-align:center">
+            <button class="modal-close" type="button" onclick="this.closest('.modal-overlay').remove()" aria-label="Schließen">&times;</button>
+            <div class="modal-feature-icon">${iconHtml}</div>
+            <h2 class="modal-title accent">${title}</h2>
+            <p class="modal-text">
                 ${this.getExplanation(key)}
             </p>
-            <button class="info-link-btn" style="margin-top:25px; background: rgba(255,255,255,0.1); width:100%; border:none; color:white; padding:12px; border-radius:12px; cursor:pointer; font-weight:600;" onclick="this.closest('.modal-overlay').remove()">Verstanden</button>
+            <button class="info-link-btn modal-action" type="button" onclick="this.closest('.modal-overlay').remove()">Verstanden</button>
         `;
         overlay.appendChild(content);
         document.body.appendChild(overlay);

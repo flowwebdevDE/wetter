@@ -9,7 +9,8 @@ async function fetchWithCache(url, cacheKey) {
         const j = await r.json();
         const stamp = new Date().toLocaleString();
         localStorage.setItem(cacheKey, JSON.stringify({ data: j, stamp }));
-        document.getElementById('offlineNotice').style.display = 'none';
+        const notice = document.getElementById('offlineNotice');
+        if (notice) notice.hidden = true;
         return j;
     } catch (e) {
         console.warn('Fetch fehlgeschlagen:', e);
@@ -97,8 +98,8 @@ async function renderCharts(lat, lon) {
     
     // Erstelle Gradienten für die Temperatur
     const gradient = ctx.createLinearGradient(0, 0, 0, 300);
-    gradient.addColorStop(0, 'rgba(255, 221, 87, 0.4)');
-    gradient.addColorStop(1, 'rgba(255, 221, 87, 0)');
+    gradient.addColorStop(0, 'rgba(245, 184, 65, 0.32)');
+    gradient.addColorStop(1, 'rgba(245, 184, 65, 0)');
 
     if (window.myChart) window.myChart.destroy(); // Alten Chart löschen
 
@@ -115,9 +116,9 @@ async function renderCharts(lat, lon) {
                 {
                     label: 'Temperatur (°C)',
                     data: tempData,
-                    borderColor: '#FFDD57',
+                    borderColor: '#f5b841',
                     backgroundColor: gradient,
-                    pointBackgroundColor: '#FFDD57',
+                    pointBackgroundColor: '#f5b841',
                     pointRadius: 0,
                     pointHoverRadius: 6,
                     borderWidth: 3,
@@ -128,8 +129,8 @@ async function renderCharts(lat, lon) {
                 {
                     label: 'Regen (mm)',
                     data: rainData,
-                    borderColor: '#4af',
-                    backgroundColor: 'rgba(68, 170, 255, 0.4)',
+                    borderColor: '#2775ca',
+                    backgroundColor: 'rgba(39, 117, 202, 0.22)',
                     yAxisID: 'y1',
                     type: 'bar'
                 }
@@ -145,7 +146,7 @@ async function renderCharts(lat, lon) {
                     position: 'bottom',
                     align: 'end',
                     labels: {
-                        color: 'rgba(255,255,255,0.8)',
+                        color: '#4f6374',
                         font: { size: 11, weight: '600' },
                         boxWidth: 12,
                         usePointStyle: true,
@@ -153,7 +154,7 @@ async function renderCharts(lat, lon) {
                     }
                 },
                 tooltip: { 
-                    backgroundColor: 'rgba(15, 23, 42, 0.95)', 
+                    backgroundColor: 'rgba(18, 34, 51, 0.96)', 
                     padding: 12,
                     borderColor: 'rgba(255,255,255,0.1)',
                     borderWidth: 1,
@@ -163,8 +164,9 @@ async function renderCharts(lat, lon) {
                 }
             },
             scales: {
-                y: { type: 'linear', position: 'left', grid: { color: 'rgba(255,255,255,0.1)' }, ticks: { color: 'rgba(255,255,255,0.7)', font: { size: 10 } } },
-                y1: { type: 'linear', position: 'right', grid: { drawOnChartArea: false }, ticks: { color: '#4af', font: { size: 10 } } }
+                x: { grid: { color: 'rgba(22, 32, 51, 0.08)' }, ticks: { color: '#607082', font: { size: 10 } } },
+                y: { type: 'linear', position: 'left', grid: { color: 'rgba(22, 32, 51, 0.08)' }, ticks: { color: '#607082', font: { size: 10 } } },
+                y1: { type: 'linear', position: 'right', grid: { drawOnChartArea: false }, ticks: { color: '#2775ca', font: { size: 10 } } }
             }
         }
     });
@@ -174,7 +176,7 @@ async function renderCharts(lat, lon) {
 function showOffline(timestamp) {
     const box = document.getElementById('offlineNotice');
     if (box) {
-        box.style.display = 'block';
-        box.innerHTML = `<span style="font-size: 0.8rem; opacity: 0.8;">Offline-Modus</span><br>Stand: ${timestamp}`;
+        box.hidden = false;
+        box.innerHTML = `<strong>Offline-Modus</strong><span>Stand: ${timestamp}</span>`;
     }
 }
