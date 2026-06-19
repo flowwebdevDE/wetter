@@ -32,6 +32,10 @@ window.showToast = (msg, duration = 3000) => {
     }, duration);
 };
 
+const notify = (msg, duration) => {
+    if (window.showToast) window.showToast(msg, duration);
+};
+
 const WEATHER_CONFIG = {
     text: (code) => {
         const map = {
@@ -65,7 +69,10 @@ const UI_ICONS = {
     navToday: () => UI_ICONS.wrap(`<circle cx="32" cy="28" r="12" stroke="currentColor" stroke-width="3"/><path d="M12 48h40" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>`, 28),
     navForecast: () => UI_ICONS.wrap(`<path d="M12 48V20M32 48V32M52 48V40" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>`, 28),
     navDetails: () => UI_ICONS.wrap(`<path d="M10 20h44M10 32h44M10 44h24" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>`, 28),
+    navFavorites: () => UI_ICONS.wrap(`<path d="M32 12l6 13 14 2-10 10 2 14-12-7-12 7 2-14-10-10 14-2 6-13z" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/>`, 28),
     navInfo: () => UI_ICONS.wrap(`<circle cx="32" cy="22" r="4" fill="currentColor"/><path d="M32 28v16M24 44h16" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>`, 28),
+    home: () => UI_ICONS.wrap(`<path d="M12 30L32 14l20 16v20H38V36H26v14H12V30z" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/>`, 24),
+    star: () => UI_ICONS.wrap(`<path d="M32 12l6 13 14 2-10 10 2 14-12-7-12 7 2-14-10-10 14-2 6-13z" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/>`, 24),
     featureLoc: () => UI_ICONS.wrap(`<path d="M32 10c-6.6 0-12 5.4-12 12 0 10 12 24 12 24s12-14 12-24c0-6.6-5.4-12-12-12zm0 16c-2.2 0-4-1.8-4-4s1.8-4 4-4 4 1.8 4 4-1.8 4-4 4z" fill="currentColor"/>`, 32),
     featureChart: () => UI_ICONS.wrap(`<path d="M12 48h40M20 48V32M32 48V16M46 48V38" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>`, 32),
     featureSave: () => UI_ICONS.wrap(`<path d="M16 14h26l8 8v28H16V14zm8 0v12h16V14M24 50V34h16v16" stroke="currentColor" stroke-width="4" fill="none"/>`, 32),
@@ -94,11 +101,23 @@ const iconForCode = (c, isNight = false) => {
 
 const weatherText = WEATHER_CONFIG.text;
 
+const STORAGE_KEYS = {
+    defaultLocation: "weather_app_default",
+    favorites: "weather_app_favorites"
+};
+
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 const isNumber = (value) => typeof value === "number" && Number.isFinite(value);
 const formatNumber = (value, digits = 0) => isNumber(value) ? value.toFixed(digits).replace(".0", "") : "–";
 const formatTemp = (value) => isNumber(value) ? `${formatNumber(value)}°` : "–";
 const formatMetric = (value, unit = "", digits = 0) => isNumber(value) ? `${formatNumber(value, digits)}${unit}` : "–";
+const escapeHTML = (value) => String(value ?? "").replace(/[&<>"']/g, char => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#039;"
+}[char]));
 
 function getHourlyIndex(hourly, timezone) {
     if (!hourly || !Array.isArray(hourly.time) || hourly.time.length === 0) return 0;
@@ -118,6 +137,53 @@ function getHourlyIndex(hourly, timezone) {
 function getHourlyValue(hourly, key, index) {
     const value = hourly && hourly[key] ? hourly[key][index] : null;
     return isNumber(value) ? value : null;
+}
+
+function makeLocationId(lat, lon) {
+    if (!isNumber(Number(lat)) || !isNumber(Number(lon))) return "";
+    return `${Number(lat).toFixed(4)},${Number(lon).toFixed(4)}`;
+}
+
+function normalizeLocation(location) {
+    if (!location) return null;
+    const lat = Number(location.lat);
+    const lon = Number(location.lon);
+    if (!isNumber(lat) || !isNumber(lon)) return null;
+    return {
+        id: makeLocationId(lat, lon),
+        lat,
+        lon,
+        label: String(location.label || `${lat.toFixed(3)}, ${lon.toFixed(3)}`)
+    };
+}
+
+function splitLocationLabel(label) {
+    const parts = String(label || "").split(",").map(part => part.trim()).filter(Boolean);
+    return {
+        primary: parts[0] || "Unbekannter Ort",
+        meta: parts.slice(1).join(", ")
+    };
+}
+
+function renderLocationHeader(location) {
+    const normalized = normalizeLocation(location);
+    if (!normalized) return;
+    const { primary, meta } = splitLocationLabel(normalized.label);
+    const date = new Intl.DateTimeFormat("de-DE", {
+        weekday: "long",
+        day: "2-digit",
+        month: "long",
+        hour: "2-digit",
+        minute: "2-digit"
+    }).format(new Date());
+
+    document.getElementById('placeName').textContent = primary;
+    const locationMeta = document.getElementById('locationMeta');
+    if (locationMeta) {
+        locationMeta.textContent = meta || `${normalized.lat.toFixed(3)}, ${normalized.lon.toFixed(3)}`;
+    }
+    const headerDate = document.getElementById('header-date');
+    if (headerDate) headerDate.textContent = date;
 }
 
 function getLevel(type, value, context = {}) {
@@ -160,7 +226,7 @@ function getLevel(type, value, context = {}) {
     return { label: "normal", tone: "neutral", meter: 50 };
 }
 
-function renderInsightCard({ label, value, unit, digits = 0, level, caption, icon }) {
+function renderInsightCard({ label, value, unit, digits = 0, level, caption, icon, secondaryLabel, secondaryValue }) {
     const display = formatMetric(value, unit, digits);
     return `
         <div class="insight-card ${level.tone}" style="--meter:${level.meter}%">
@@ -168,21 +234,26 @@ function renderInsightCard({ label, value, unit, digits = 0, level, caption, ico
                 <span>${icon || ""}${label}</span>
                 <span class="level-chip">${level.label}</span>
             </div>
-            <strong>${display}</strong>
+            <div class="metric-readout">
+                <strong>${display}</strong>
+                ${secondaryValue ? `<span><b>${secondaryValue}</b>${secondaryLabel ? ` ${secondaryLabel}` : ""}</span>` : ""}
+            </div>
             <span class="metric-meter" aria-hidden="true"><span></span></span>
             <small>${caption}</small>
         </div>
     `;
 }
 
-function renderWeatherInsights({ apparent, humidity, rainToday, rainProbability, wind, gusts, uv, minTemp, maxTemp }) {
+function renderWeatherInsights({ apparent, humidity, rainToday, rainProbability, wind, gusts, uv, uvMax, minTemp, maxTemp }) {
     return [
         renderInsightCard({
             label: "Gefühlt",
             value: apparent,
             unit: "°",
             level: getLevel("temp", apparent),
-            caption: `Heute ${formatTemp(minTemp)} bis ${formatTemp(maxTemp)}`,
+            caption: "Istwert, Tagesbereich kleiner darunter",
+            secondaryValue: `${formatTemp(minTemp)} bis ${formatTemp(maxTemp)}`,
+            secondaryLabel: "heute",
             icon: UI_ICONS.detailDewpoint()
         }),
         renderInsightCard({
@@ -191,22 +262,28 @@ function renderWeatherInsights({ apparent, humidity, rainToday, rainProbability,
             unit: isNumber(rainProbability) ? "%" : " mm",
             digits: isNumber(rainProbability) ? 0 : 1,
             level: getLevel("rain", rainToday || 0, { probability: rainProbability }),
-            caption: `${formatMetric(rainToday, " mm", 1)} heute`,
+            caption: "Aktuelle Wahrscheinlichkeit zuerst",
+            secondaryValue: `${formatMetric(rainToday, " mm", 1)}`,
+            secondaryLabel: "heute",
             icon: UI_ICONS.rain()
         }),
         renderInsightCard({
             label: "Wind",
-            value: gusts ?? wind,
+            value: wind,
             unit: " km/h",
-            level: getLevel("wind", gusts ?? wind),
-            caption: isNumber(gusts) ? `Böen, aktuell ${formatMetric(wind, " km/h")}` : "Aktuelle Windgeschwindigkeit",
+            level: getLevel("wind", wind),
+            caption: "Aktuelle Geschwindigkeit im Fokus",
+            secondaryValue: isNumber(gusts) ? `${formatMetric(gusts, " km/h")}` : "",
+            secondaryLabel: "Böen",
             icon: UI_ICONS.featureWind()
         }),
         renderInsightCard({
             label: "UV",
             value: uv,
             level: getLevel("uv", uv),
-            caption: "Tagesmaximum",
+            caption: "Aktueller Index vor Tagesmaximum",
+            secondaryValue: isNumber(uvMax) ? `${formatMetric(uvMax, "", 1)}` : "",
+            secondaryLabel: "max.",
             icon: UI_ICONS.sun()
         }),
         renderInsightCard({
@@ -214,45 +291,76 @@ function renderWeatherInsights({ apparent, humidity, rainToday, rainProbability,
             value: humidity,
             unit: "%",
             level: getLevel("humidity", humidity),
-            caption: "relative Luftfeuchte",
+            caption: "Aktuelle relative Luftfeuchte",
             icon: UI_ICONS.detailHumidity()
         })
     ].join("");
 }
 
-function renderSunAndWarnings(data) {
+function collectWeatherAlerts(data) {
+    const alerts = [];
+    const tomorrowMin = data.daily.temperature_2m_min[1];
+    const todayMax = data.daily.temperature_2m_max[0];
+    const tomorrowMax = data.daily.temperature_2m_max[1];
+    const rainToday = data.daily.precipitation_sum ? data.daily.precipitation_sum[0] : null;
+    const gustToday = data.daily.wind_gusts_10m_max ? data.daily.wind_gusts_10m_max[0] : null;
+    const uvToday = data.daily.uv_index_max ? data.daily.uv_index_max[0] : null;
+
+    if (tomorrowMin <= 0) {
+        alerts.push({ tone: "risk", icon: UI_ICONS.frost(), title: "Frost möglich", text: `Tiefstwert morgen bei ${formatTemp(tomorrowMin)}` });
+    }
+    if (todayMax >= 30 || tomorrowMax >= 30) {
+        alerts.push({ tone: "risk", icon: UI_ICONS.heat(), title: "Hitze", text: `Maximalwert bis ${formatTemp(Math.max(todayMax, tomorrowMax))}` });
+    }
+    if (isNumber(gustToday) && gustToday >= 70) {
+        alerts.push({ tone: "risk", icon: UI_ICONS.windWarning(), title: "Starke Böen", text: `Böen bis ${formatMetric(gustToday, " km/h")}` });
+    } else if (isNumber(gustToday) && gustToday >= 50) {
+        alerts.push({ tone: "watch", icon: UI_ICONS.windWarning(), title: "Wind auffällig", text: `Böen bis ${formatMetric(gustToday, " km/h")}` });
+    }
+    if (isNumber(uvToday) && uvToday >= 6) {
+        alerts.push({ tone: "watch", icon: UI_ICONS.uvWarning(), title: "Hoher UV-Index", text: `Tagesmaximum ${formatMetric(uvToday, "", 1)}` });
+    }
+    if (isNumber(rainToday) && rainToday >= 10) {
+        alerts.push({ tone: "watch", icon: UI_ICONS.rain(), title: "Viel Niederschlag", text: `${formatMetric(rainToday, " mm", 1)} heute erwartet` });
+    }
+
+    return alerts;
+}
+
+function renderWeatherAlerts(data) {
+    const alerts = collectWeatherAlerts(data);
+    if (alerts.length === 0) {
+        return `
+            <div class="alert-card good">
+                <span class="alert-icon">${UI_ICONS.featureAlert()}</span>
+                <div>
+                    <strong>Keine markanten Warnungen</strong>
+                    <small>Frost, Hitze, UV, Wind und Regen liegen aktuell im unauffälligen Bereich.</small>
+                </div>
+            </div>
+        `;
+    }
+
+    return alerts.map(alert => `
+        <div class="alert-card ${alert.tone}">
+            <span class="alert-icon">${alert.icon}</span>
+            <div>
+                <strong>${alert.title}</strong>
+                <small>${alert.text}</small>
+            </div>
+        </div>
+    `).join("");
+}
+
+function renderSunInfo(data) {
     const sunrise = data.daily.sunrise[0].split("T")[1];
     const sunset = data.daily.sunset[0].split("T")[1];
-    const warnings = [];
-
-    if (data.daily.temperature_2m_min[1] <= 0) {
-        warnings.push({ tone: "risk", icon: UI_ICONS.frost(), title: "Frost möglich", text: "Tiefstwert morgen bei " + formatTemp(data.daily.temperature_2m_min[1]) });
-    }
-    if (data.daily.temperature_2m_max[0] >= 30 || data.daily.temperature_2m_max[1] >= 30) {
-        warnings.push({ tone: "risk", icon: UI_ICONS.heat(), title: "Hitze", text: "Maximalwert bis " + formatTemp(Math.max(data.daily.temperature_2m_max[0], data.daily.temperature_2m_max[1])) });
-    }
-    if (data.daily.wind_gusts_10m_max && (data.daily.wind_gusts_10m_max[0] >= 70 || data.daily.wind_gusts_10m_max[1] >= 70)) {
-        warnings.push({ tone: "watch", icon: UI_ICONS.windWarning(), title: "Starke Böen", text: "Böen bis " + formatMetric(Math.max(data.daily.wind_gusts_10m_max[0], data.daily.wind_gusts_10m_max[1]), " km/h") });
-    }
-    if (data.daily.uv_index_max && (data.daily.uv_index_max[0] >= 6 || data.daily.uv_index_max[1] >= 6)) {
-        warnings.push({ tone: "watch", icon: UI_ICONS.uvWarning(), title: "Hoher UV-Index", text: "Maximum " + formatMetric(Math.max(data.daily.uv_index_max[0], data.daily.uv_index_max[1])) });
-    }
-
-    const warningHtml = warnings.length
-        ? warnings.map(item => `
-            <div class="warning ${item.tone}">
-                <span>${item.icon}</span>
-                <div><strong>${item.title}</strong><small>${item.text}</small></div>
-            </div>
-        `).join("")
-        : `<div class="daily-note good"><strong>Unauffällig</strong><small>Keine markanten Wetterwarnungen in den nächsten 24 Stunden.</small></div>`;
 
     return `
         <div class="sun-info">
             <span>${UI_ICONS.sunrise()}<strong>${sunrise}</strong><small>Aufgang</small></span>
             <span>${UI_ICONS.sunset()}<strong>${sunset}</strong><small>Untergang</small></span>
         </div>
-        <div class="warning-list">${warningHtml}</div>
     `;
 }
 
@@ -303,7 +411,7 @@ const getPosition = async () => {
  */
 const getFallbackLocation = () => {
     try {
-        const saved = localStorage.getItem('weather_app_default');
+        const saved = localStorage.getItem(STORAGE_KEYS.defaultLocation);
         if (saved) return JSON.parse(saved);
     } catch (e) {
         console.error("Fehler beim Lesen des Standardorts", e);
@@ -311,11 +419,137 @@ const getFallbackLocation = () => {
     return { lat: 48.7758, lon: 9.1829, label: "Stuttgart" };
 };
 
+const Favorites = {
+    read() {
+        try {
+            const parsed = JSON.parse(localStorage.getItem(STORAGE_KEYS.favorites) || "[]");
+            if (!Array.isArray(parsed)) return [];
+            return parsed.map(normalizeLocation).filter(Boolean);
+        } catch (e) {
+            console.error("Fehler beim Lesen der Favoriten", e);
+            return [];
+        }
+    },
+
+    write(list) {
+        const cleaned = list.map(normalizeLocation).filter(Boolean);
+        localStorage.setItem(STORAGE_KEYS.favorites, JSON.stringify(cleaned));
+        this.render();
+        App.updateLocationControls();
+    },
+
+    getDefault() {
+        return normalizeLocation(getFallbackLocation());
+    },
+
+    isDefault(location) {
+        const normalized = normalizeLocation(location);
+        const currentDefault = this.getDefault();
+        return !!normalized && !!currentDefault && normalized.id === currentDefault.id;
+    },
+
+    isFavorite(location) {
+        const normalized = normalizeLocation(location);
+        if (!normalized) return false;
+        return this.read().some(item => item.id === normalized.id);
+    },
+
+    add(location) {
+        const normalized = normalizeLocation(location);
+        if (!normalized) return false;
+        const list = this.read();
+        const index = list.findIndex(item => item.id === normalized.id);
+        if (index >= 0) {
+            list[index] = normalized;
+        } else {
+            list.unshift(normalized);
+        }
+        this.write(list);
+        return true;
+    },
+
+    remove(id) {
+        const list = this.read().filter(item => item.id !== id);
+        this.write(list);
+        const currentDefault = this.getDefault();
+        if (currentDefault && currentDefault.id === id) {
+            localStorage.removeItem(STORAGE_KEYS.defaultLocation);
+        }
+        notify("Favorit entfernt.");
+    },
+
+    setDefault(location) {
+        const normalized = normalizeLocation(location);
+        if (!normalized) return false;
+        localStorage.setItem(STORAGE_KEYS.defaultLocation, JSON.stringify(normalized));
+        this.add(normalized);
+        this.render();
+        App.updateLocationControls();
+        return true;
+    },
+
+    setDefaultById(id) {
+        const item = this.read().find(favorite => favorite.id === id);
+        if (!item) return;
+        if (this.setDefault(item)) notify(`${splitLocationLabel(item.label).primary} ist jetzt dein Startort.`);
+    },
+
+    load(id) {
+        const item = this.read().find(favorite => favorite.id === id);
+        if (!item) return;
+        App.fetchFullWeather(item.lat, item.lon, item.label);
+        const todayNav = document.querySelector('.nav-item[data-tab="tab-today"]');
+        if (todayNav) todayNav.click();
+    },
+
+    render() {
+        const container = document.getElementById("favoritesList");
+        if (!container) return;
+        const list = this.read();
+        if (list.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <span>${UI_ICONS.navFavorites()}</span>
+                    <strong>Noch keine Favoriten</strong>
+                    <small>Speichere den aktuellen Ort oder suche einen Ort und merke ihn dir danach.</small>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = list.map(item => {
+            const { primary, meta } = splitLocationLabel(item.label);
+            const isDefault = this.isDefault(item);
+            return `
+                <div class="favorite-row ${isDefault ? "is-default" : ""}">
+                    <div class="favorite-place">
+                        <span class="favorite-icon">${isDefault ? UI_ICONS.home() : UI_ICONS.navFavorites()}</span>
+                        <div>
+                            <strong>${escapeHTML(primary)}</strong>
+                            <small>${escapeHTML(meta || `${item.lat.toFixed(3)}, ${item.lon.toFixed(3)}`)}</small>
+                        </div>
+                    </div>
+                    <div class="favorite-actions">
+                        <button type="button" onclick="Favorites.load('${item.id}')">Laden</button>
+                        <button type="button" onclick="Favorites.setDefaultById('${item.id}')">${isDefault ? "Startort" : "Als Startort"}</button>
+                        <button type="button" class="danger" onclick="Favorites.remove('${item.id}')">Entfernen</button>
+                    </div>
+                </div>
+            `;
+        }).join("");
+    }
+};
+
+window.Favorites = Favorites;
+
 const App = {
     init() {
         const sb = document.getElementById('searchBox');
         const sug = document.getElementById('suggestionsList');
         const geoBtn = document.getElementById('geoBtn');
+        const quickFavoriteBtn = document.getElementById('quickFavoriteBtn');
+        const quickDefaultBtn = document.getElementById('quickDefaultBtn');
+        const addCurrentFavoriteBtn = document.getElementById('addCurrentFavoriteBtn');
 
         if (sb) {
             sb.addEventListener('input', async () => {
@@ -347,14 +581,30 @@ const App = {
                 try {
                     const p = await getPosition();
                     App.fetchFullWeather(p.coords.latitude, p.coords.longitude, "Mein Standort");
-                } catch (e) { showToast("Standort nicht erlaubt oder nicht gefunden."); }
+                } catch (e) { notify("Standort nicht erlaubt oder nicht gefunden."); }
             };
         }
 
+        if (quickFavoriteBtn) {
+            quickFavoriteBtn.innerHTML = UI_ICONS.star();
+            quickFavoriteBtn.onclick = () => App.saveCurrentFavorite();
+        }
+
+        if (quickDefaultBtn) {
+            quickDefaultBtn.innerHTML = UI_ICONS.home();
+            quickDefaultBtn.onclick = () => App.setCurrentAsDefault();
+        }
+
+        if (addCurrentFavoriteBtn) {
+            addCurrentFavoriteBtn.onclick = () => App.saveCurrentFavorite();
+        }
+
         // Icons in die Navigation einfügen
+        document.getElementById('header-loc-icon').innerHTML = UI_ICONS.featureLoc();
         document.getElementById('nav-icon-today').innerHTML = UI_ICONS.navToday();
         document.getElementById('nav-icon-forecast').innerHTML = UI_ICONS.navForecast();
         document.getElementById('nav-icon-details').innerHTML = UI_ICONS.navDetails();
+        document.getElementById('nav-icon-favorites').innerHTML = UI_ICONS.navFavorites();
         document.getElementById('nav-icon-info').innerHTML = UI_ICONS.navInfo();
         
         if (document.getElementById('info-app-icon')) document.getElementById('info-app-icon').innerHTML = UI_ICONS.sun();
@@ -382,16 +632,18 @@ const App = {
                 document.querySelectorAll('.nav-item, .tab-content').forEach(el => el.classList.remove('active'));
                 btn.classList.add('active');
                 document.getElementById(btn.dataset.tab).classList.add('active');
+                if (btn.dataset.tab === "tab-favorites") Favorites.render();
                 
                 if (window.myChart) window.myChart.resize();
                 
                 window.scrollTo(0, 0);
             };
         });
+        Favorites.render();
     },
 
     async fetchFullWeather(lat, lon, label) {
-        const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&hourly=relative_humidity_2m,apparent_temperature,precipitation_probability&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,weathercode,sunrise,sunset,wind_gusts_10m_max,uv_index_max&timezone=auto`;
+        const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&hourly=relative_humidity_2m,apparent_temperature,precipitation_probability,uv_index&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,weathercode,sunrise,sunset,wind_gusts_10m_max,uv_index_max&timezone=auto`;
         try {
             const data = await fetchWithCache(url, 'currentWeatherCache'); // Nutze fetchWithCache
             this.render(data, lat, lon, label);
@@ -409,12 +661,14 @@ const App = {
 
     render(data, lat, lon, label) {
         document.getElementById('weather').hidden = false;
-        document.getElementById('placeName').textContent = label || `${lat.toFixed(3)},${lon.toFixed(3)}`;
+        this.currentLocation = normalizeLocation({ lat, lon, label: label || `${lat.toFixed(3)}, ${lon.toFixed(3)}` });
+        renderLocationHeader(this.currentLocation);
         const cw = data.current_weather;
         const hourlyIndex = getHourlyIndex(data.hourly, data.timezone);
         const humidity = getHourlyValue(data.hourly, "relative_humidity_2m", hourlyIndex);
         const apparent = getHourlyValue(data.hourly, "apparent_temperature", hourlyIndex) ?? cw.temperature;
         const rainProbability = getHourlyValue(data.hourly, "precipitation_probability", hourlyIndex);
+        const currentUv = getHourlyValue(data.hourly, "uv_index", hourlyIndex);
         const maxTemp = data.daily.temperature_2m_max[0];
         const minTemp = data.daily.temperature_2m_min[0];
         const rainToday = data.daily.precipitation_sum[0] || 0;
@@ -436,23 +690,31 @@ const App = {
                 rainProbability,
                 wind: cw.windspeed,
                 gusts: gustsToday,
-                uv: uvToday,
+                uv: currentUv ?? uvToday,
+                uvMax: uvToday,
                 minTemp,
                 maxTemp
             });
         }
 
-        // Standardort-Button Logik
         const saveBtn = document.getElementById('saveDefaultBtn');
         if (saveBtn) {
             saveBtn.classList.add('is-visible');
-            saveBtn.onclick = () => {
-                localStorage.setItem('weather_app_default', JSON.stringify({ lat, lon, label }));
-                showToast(`${label} wurde als Standardort gespeichert.`);
-            };
+            saveBtn.onclick = () => App.saveCurrentFavorite();
         }
+        const defaultBtn = document.getElementById('setDefaultBtn');
+        if (defaultBtn) {
+            defaultBtn.classList.add('is-visible');
+            defaultBtn.onclick = () => App.setCurrentAsDefault();
+        }
+        this.updateLocationControls();
 
-        document.getElementById('details').innerHTML = renderSunAndWarnings(data);
+        const alertPanel = document.getElementById('alertPanel');
+        if (alertPanel) {
+            alertPanel.hidden = false;
+            alertPanel.innerHTML = renderWeatherAlerts(data);
+        }
+        document.getElementById('details').innerHTML = renderSunInfo(data);
 
         const grid = document.getElementById('dailyForecastGrid'); // Umbenannt für Klarheit
         grid.innerHTML = '';
@@ -495,6 +757,44 @@ const App = {
         }
         
         renderDailyOverview(lat, lon, data.daily.sunrise[0], data.daily.sunset[0]);
+        Favorites.render();
+    },
+
+    updateLocationControls() {
+        const location = this.currentLocation;
+        const favorite = Favorites.isFavorite(location);
+        const isDefault = Favorites.isDefault(location);
+        const quickFavoriteBtn = document.getElementById('quickFavoriteBtn');
+        const quickDefaultBtn = document.getElementById('quickDefaultBtn');
+        const saveBtn = document.getElementById('saveDefaultBtn');
+        const defaultBtn = document.getElementById('setDefaultBtn');
+        const addCurrentFavoriteBtn = document.getElementById('addCurrentFavoriteBtn');
+
+        if (quickFavoriteBtn) quickFavoriteBtn.classList.toggle('active', favorite);
+        if (quickDefaultBtn) quickDefaultBtn.classList.toggle('active', isDefault);
+        if (saveBtn) saveBtn.textContent = favorite ? "Favorit aktualisieren" : "Favorit speichern";
+        if (defaultBtn) defaultBtn.textContent = isDefault ? "Aktueller Startort" : "Als Startort setzen";
+        if (addCurrentFavoriteBtn) addCurrentFavoriteBtn.textContent = favorite ? "Favorit aktualisieren" : "Aktuellen Ort merken";
+    },
+
+    saveCurrentFavorite() {
+        if (!this.currentLocation) {
+            notify("Noch kein Ort geladen.");
+            return;
+        }
+        Favorites.add(this.currentLocation);
+        this.updateLocationControls();
+        notify(`${splitLocationLabel(this.currentLocation.label).primary} wurde gespeichert.`);
+    },
+
+    setCurrentAsDefault() {
+        if (!this.currentLocation) {
+            notify("Noch kein Ort geladen.");
+            return;
+        }
+        if (Favorites.setDefault(this.currentLocation)) {
+            notify(`${splitLocationLabel(this.currentLocation.label).primary} ist jetzt dein Startort.`);
+        }
     },
 
     async showDayDetails(d, lat, lon) {
@@ -731,7 +1031,7 @@ window.addEventListener("load", async () => {
     App.init();
     
     // Ladereihenfolge: 1. Gespeicherter Ort -> 2. Geo-Location -> 3. Fallback
-    const saved = localStorage.getItem('weather_app_default');
+    const saved = localStorage.getItem(STORAGE_KEYS.defaultLocation);
     if (saved) {
         const { lat, lon, label } = JSON.parse(saved);
         App.fetchFullWeather(lat, lon, label);
