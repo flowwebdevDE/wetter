@@ -93,10 +93,19 @@
             <section id="tab-details" class="tab-content">
                 <div id="specialParamsDashboard"></div>
 
-                <!-- Sonnenstand Visualisierung (Hierher verschoben) -->
                 <div id="sunVisual" class="card sun-card">
                     <div class="section-heading compact">
                         <h3>Sonnenverlauf & Tageslicht</h3>
+                    </div>
+                    <div class="sun-detail-strip">
+                        <span>
+                            <small>Tageslicht</small>
+                            <strong id="sunDaylightValue">--</strong>
+                        </span>
+                        <span>
+                            <small>Status</small>
+                            <strong id="sunCurrentState">--</strong>
+                        </span>
                     </div>
                     <div class="sun-path-box">
                         <svg viewBox="0 0 200 100" class="sun-path-svg">
@@ -110,14 +119,16 @@
                     </div>
                 </div>
 
-                <!-- Wetter-Diagramm (Hierher verschoben) -->
                 <div id="hourlyChartContainer" class="card chart-card">
                     <div class="section-heading compact">
                         <h2>Wetterverlauf (24h)</h2>
                     </div>
+                    <div id="chartSummaryStrip" class="chart-summary-strip"></div>
                     <div class="chart-frame">
-                        <canvas id="hourlyChart"></canvas>
+                        <canvas id="hourlyChart" role="img" aria-label="Temperatur- und Regenverlauf der nächsten 24 Stunden"></canvas>
                     </div>
+                    <div id="chartFocusPanel" class="chart-focus-panel" aria-live="polite"></div>
+                    <div id="chartHourControls" class="chart-hour-controls" aria-label="Zeitpunkt wählen"></div>
                 </div> 
             </section>
 

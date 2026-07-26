@@ -951,16 +951,24 @@ body.glass-rich .bottom-nav::before {
 
 #dailyForecastGrid {
     display: grid;
-    gap: 10px;
+    gap: 8px;
+}
+
+#tab-forecast.active .forecast-panel {
+    padding: 14px;
+}
+
+#tab-forecast.active .section-heading {
+    margin-bottom: 10px;
 }
 
 .day {
     display: grid;
     grid-template-columns: minmax(62px, 0.7fr) minmax(170px, 1.5fr) minmax(130px, 1fr) minmax(86px, 0.65fr);
     align-items: center;
-    gap: 12px;
+    gap: 10px;
     min-width: 0;
-    padding: 12px;
+    padding: 10px;
     color: var(--ink);
     background: var(--surface-soft);
     border: 1px solid var(--line);
@@ -993,13 +1001,13 @@ body.glass-rich .bottom-nav::before {
 .day-icon-row {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
     min-width: 0;
 }
 
 .day-icon-row svg {
-    width: 34px;
-    height: 34px;
+    width: 30px;
+    height: 30px;
     flex: 0 0 auto;
 }
 
@@ -1015,7 +1023,8 @@ body.glass-rich .bottom-nav::before {
 
 .day-temp-row {
     display: grid;
-    gap: 7px;
+    gap: 5px;
+    min-width: 0;
 }
 
 .day-temp-row > div {
@@ -1038,10 +1047,12 @@ body.glass-rich .bottom-nav::before {
 .temp-range {
     position: relative;
     display: block;
-    height: 6px;
+    min-width: 72px;
+    height: 7px;
     overflow: hidden;
     background: rgba(22, 32, 51, 0.1);
     border-radius: 999px;
+    box-shadow: inset 0 0 0 1px rgba(22, 32, 51, 0.04);
 }
 
 .temp-range span {
@@ -1049,8 +1060,9 @@ body.glass-rich .bottom-nav::before {
     left: var(--range-left);
     width: var(--range-width);
     height: 100%;
-    background: linear-gradient(90deg, var(--cyan), var(--sun));
+    background: linear-gradient(90deg, var(--cyan), var(--sun), var(--warn));
     border-radius: inherit;
+    box-shadow: 0 0 10px rgba(245, 184, 65, 0.26);
 }
 
 .day-rain-row {
@@ -1071,32 +1083,35 @@ body.glass-rich .bottom-nav::before {
 
 #specialParamsDashboard {
     display: grid;
-    gap: 14px;
+    gap: 12px;
 }
 
 .details-section {
     margin-top: 0;
+    padding: 14px;
 }
 
 .details-section-title {
-    margin: 0 0 12px;
+    margin: 0 0 10px;
     color: var(--ink);
-    font-size: 1rem;
+    font-size: 0.96rem;
 }
 
 .details-grid-layout {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(142px, 1fr));
-    gap: 10px;
+    grid-template-columns: 1fr;
+    gap: 8px;
 }
 
 .detail-item {
     --tone: var(--sky);
     display: grid;
-    justify-items: start;
-    gap: 7px;
-    min-height: 132px;
-    padding: 12px;
+    grid-template-columns: 34px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    min-height: 0;
+    padding: 9px 10px;
     color: var(--ink);
     text-align: left;
     background: var(--surface-soft);
@@ -1115,8 +1130,8 @@ body.glass-rich .bottom-nav::before {
 .detail-icon {
     display: grid;
     place-items: center;
-    width: 34px;
-    height: 34px;
+    width: 32px;
+    height: 32px;
     color: var(--tone);
     background: rgba(29, 116, 166, 0.1);
     border-radius: var(--radius);
@@ -1135,26 +1150,54 @@ body.glass-rich .bottom-nav::before {
 }
 
 .detail-icon svg {
-    width: 24px;
-    height: 24px;
+    width: 22px;
+    height: 22px;
 }
 
-.detail-item > span:not(.detail-icon) {
+.detail-copy {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+}
+
+.detail-copy > span {
+    overflow: hidden;
     color: var(--muted);
     font-size: 0.8rem;
     font-weight: 800;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.detail-copy small {
+    justify-self: start;
+    padding: 2px 6px;
+    color: var(--tone);
+    background: rgba(29, 116, 166, 0.08);
+    border-radius: 999px;
+    font-size: 0.64rem;
+    font-weight: 900;
+}
+
+.detail-item.good .detail-copy small {
+    background: rgba(22, 138, 90, 0.1);
+}
+
+.detail-item.watch .detail-copy small {
+    background: rgba(183, 121, 31, 0.12);
+}
+
+.detail-item.risk .detail-copy small {
+    background: rgba(194, 65, 45, 0.12);
 }
 
 .detail-item strong {
-    font-size: 1.25rem;
+    justify-self: end;
+    color: var(--ink);
+    font-size: 1.05rem;
     line-height: 1;
-}
-
-.detail-item small {
-    align-self: end;
-    color: var(--tone);
-    font-size: 0.74rem;
     font-weight: 900;
+    white-space: nowrap;
 }
 
 .favorites-manager {
@@ -1291,7 +1334,41 @@ body.glass-rich .bottom-nav::before {
 }
 
 .sun-card {
+    display: grid;
+    gap: 12px;
+    overflow: hidden;
     text-align: center;
+}
+
+.sun-detail-strip {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.sun-detail-strip span {
+    display: grid;
+    gap: 3px;
+    min-width: 0;
+    padding: 9px 10px;
+    background: var(--surface-soft);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+}
+
+.sun-detail-strip small {
+    color: var(--muted);
+    font-size: 0.66rem;
+    font-weight: 900;
+}
+
+.sun-detail-strip strong {
+    overflow: hidden;
+    color: var(--ink);
+    font-size: 0.98rem;
+    font-weight: 900;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .sun-path-box {
@@ -1331,12 +1408,126 @@ body.glass-rich .bottom-nav::before {
 }
 
 .chart-frame {
-    height: 260px;
+    height: 230px;
 }
 
 #hourlyChart {
-    max-height: 300px;
+    max-height: 260px;
     width: 100% !important;
+    touch-action: pan-y;
+}
+
+.chart-card {
+    display: grid;
+    gap: 10px;
+}
+
+.chart-summary-strip,
+.chart-focus-panel {
+    display: grid;
+    gap: 8px;
+}
+
+.chart-summary-strip {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.chart-focus-panel {
+    grid-template-columns: minmax(88px, 1.15fr) repeat(3, minmax(0, 1fr));
+}
+
+.chart-summary-strip span,
+.chart-focus-panel span {
+    display: grid;
+    gap: 3px;
+    min-width: 0;
+    padding: 9px 10px;
+    background: var(--surface-soft);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+}
+
+.chart-summary-strip .primary,
+.chart-focus-time {
+    background: rgba(245, 184, 65, 0.14);
+    border-color: rgba(245, 184, 65, 0.24);
+}
+
+.chart-summary-strip small,
+.chart-focus-panel small {
+    overflow: hidden;
+    color: var(--muted);
+    font-size: 0.64rem;
+    font-weight: 900;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.chart-summary-strip strong,
+.chart-focus-panel strong {
+    overflow: hidden;
+    color: var(--ink);
+    font-size: 0.96rem;
+    font-weight: 900;
+    line-height: 1.08;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.chart-summary-strip .primary strong,
+.chart-focus-time strong {
+    color: var(--warn);
+}
+
+.chart-hour-controls {
+    display: flex;
+    gap: 7px;
+    overflow-x: auto;
+    padding: 2px 1px 4px;
+    scrollbar-width: none;
+    scroll-snap-type: x proximity;
+}
+
+.chart-hour-controls::-webkit-scrollbar {
+    display: none;
+}
+
+.chart-time-button {
+    flex: 0 0 auto;
+    display: grid;
+    min-width: 72px;
+    gap: 2px;
+    padding: 8px 10px;
+    color: var(--muted);
+    background: rgba(255, 255, 255, 0.52);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    cursor: pointer;
+    scroll-snap-align: start;
+    transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+}
+
+.chart-time-button span {
+    font-size: 0.68rem;
+    font-weight: 900;
+}
+
+.chart-time-button strong {
+    color: var(--ink);
+    font-size: 0.9rem;
+    font-weight: 900;
+}
+
+.chart-time-button:hover,
+.chart-time-button.active {
+    color: var(--ink);
+    background: rgba(245, 184, 65, 0.16);
+    border-color: rgba(245, 184, 65, 0.34);
+    transform: translateY(-1px);
+}
+
+.chart-time-button.active {
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.58), 0 8px 20px rgba(245, 184, 65, 0.16);
 }
 
 .modal-overlay {
@@ -1432,11 +1623,119 @@ body.glass-rich .bottom-nav::before {
     font-size: 1.05rem;
 }
 
+.modal-stat.good {
+    border-left: 4px solid var(--leaf);
+}
+
+.modal-stat.watch {
+    border-left: 4px solid var(--warn);
+}
+
+.modal-stat.risk {
+    border-left: 4px solid var(--risk);
+}
+
 .modal-subtitle {
     margin: 22px 0 8px;
     color: var(--ink);
     text-align: center;
     font-size: 1rem;
+}
+
+.day-detail-modal {
+    width: min(560px, 100%);
+}
+
+.day-detail-hero {
+    display: grid;
+    grid-template-columns: 96px minmax(0, 1fr);
+    align-items: center;
+    gap: 16px;
+    margin-top: 4px;
+    padding: 14px;
+    color: #fff;
+    background:
+        linear-gradient(145deg, rgba(18, 34, 51, 0.96), rgba(29, 116, 166, 0.9)),
+        linear-gradient(90deg, rgba(15, 159, 154, 0.18), rgba(245, 184, 65, 0.16));
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: var(--radius);
+}
+
+.day-detail-hero .modal-icon {
+    display: grid;
+    place-items: center;
+    width: 96px;
+    height: 96px;
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: var(--radius);
+}
+
+.day-detail-hero .modal-icon svg {
+    width: 72px;
+    height: 72px;
+    filter: drop-shadow(0 12px 18px rgba(0, 0, 0, 0.18));
+}
+
+.day-detail-copy {
+    display: grid;
+    gap: 6px;
+    min-width: 0;
+}
+
+.day-detail-copy .modal-title {
+    color: #fff;
+    text-align: left;
+}
+
+.day-detail-copy > strong {
+    color: rgba(255, 255, 255, 0.78);
+    font-size: 0.9rem;
+}
+
+.day-detail-temp {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+}
+
+.day-detail-temp strong {
+    color: #fff;
+    font-size: 2.2rem;
+    line-height: 1;
+}
+
+.day-detail-temp span {
+    color: rgba(255, 255, 255, 0.68);
+    font-size: 1.05rem;
+    font-weight: 900;
+}
+
+.day-detail-range {
+    display: grid;
+    gap: 8px;
+    margin: 12px 0;
+    padding: 12px;
+    background: var(--surface-soft);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+}
+
+.day-detail-range > div {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    color: var(--muted);
+    font-size: 0.76rem;
+    font-weight: 900;
+}
+
+.day-detail-range .temp-range {
+    height: 9px;
+}
+
+.day-detail-stats {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 .modal-loading {
@@ -2145,6 +2444,70 @@ body.reduce-motion *::after {
         align-self: start;
     }
 
+    #specialParamsDashboard {
+        gap: 10px;
+    }
+
+    .details-section {
+        padding: 12px;
+    }
+
+    .details-section-title {
+        margin-bottom: 8px;
+        font-size: 0.9rem;
+    }
+
+    .detail-item {
+        grid-template-columns: 30px minmax(0, 1fr) auto;
+        gap: 8px;
+        padding: 8px;
+    }
+
+    .detail-icon {
+        width: 30px;
+        height: 30px;
+    }
+
+    .detail-icon svg {
+        width: 20px;
+        height: 20px;
+    }
+
+    .detail-item strong {
+        font-size: 0.96rem;
+    }
+
+    .sun-detail-strip {
+        gap: 6px;
+    }
+
+    .sun-detail-strip span {
+        padding: 8px;
+    }
+
+    .sun-detail-strip strong {
+        font-size: 0.9rem;
+    }
+
+    .chart-summary-strip,
+    .chart-focus-panel {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .chart-summary-strip span,
+    .chart-focus-panel span {
+        padding: 8px;
+    }
+
+    .chart-time-button {
+        min-width: 68px;
+        padding: 7px 9px;
+    }
+
+    .chart-frame {
+        height: 210px;
+    }
+
     .day {
         grid-template-columns: 1fr auto;
         align-items: start;
@@ -2162,6 +2525,129 @@ body.reduce-motion *::after {
 
     .day-icon-row span {
         white-space: normal;
+    }
+
+    #tab-forecast.active .forecast-panel {
+        padding: 10px;
+    }
+
+    #tab-forecast.active .section-heading {
+        margin-bottom: 8px;
+    }
+
+    #tab-forecast.active #dailyForecastGrid {
+        gap: 6px;
+    }
+
+    #tab-forecast.active .day {
+        grid-template-columns: 48px minmax(0, 1fr) auto;
+        grid-template-areas:
+            "date weather rain"
+            "temp temp temp";
+        align-items: center;
+        gap: 6px 8px;
+        padding: 8px;
+    }
+
+    #tab-forecast.active .day-info {
+        grid-area: date;
+    }
+
+    #tab-forecast.active .day-info strong {
+        font-size: 0.86rem;
+    }
+
+    #tab-forecast.active .day-info small {
+        font-size: 0.66rem;
+    }
+
+    #tab-forecast.active .day-icon-row {
+        grid-area: weather;
+        gap: 6px;
+    }
+
+    #tab-forecast.active .day-icon-row svg {
+        width: 26px;
+        height: 26px;
+    }
+
+    #tab-forecast.active .day-icon-row span {
+        font-size: 0.76rem;
+        line-height: 1.18;
+        white-space: normal;
+    }
+
+    #tab-forecast.active .day-rain-row {
+        grid-area: rain;
+        grid-column: auto;
+        grid-row: auto;
+        min-width: 48px;
+    }
+
+    #tab-forecast.active .day-rain-row strong {
+        font-size: 0.8rem;
+    }
+
+    #tab-forecast.active .day-rain-row small {
+        font-size: 0.62rem;
+    }
+
+    #tab-forecast.active .day-temp-row {
+        grid-area: temp;
+        grid-column: auto;
+        display: grid;
+        grid-template-columns: minmax(96px, auto) minmax(92px, 1fr);
+        align-items: center;
+        gap: 8px;
+    }
+
+    #tab-forecast.active .day-temp-row > div {
+        justify-content: flex-start;
+        gap: 8px;
+    }
+
+    #tab-forecast.active .day-temp-row strong {
+        font-size: 0.9rem;
+    }
+
+    #tab-forecast.active .day-temp-row span {
+        font-size: 0.76rem;
+    }
+
+    #tab-forecast.active .temp-range {
+        height: 7px;
+    }
+
+    .day-detail-modal {
+        width: min(440px, 100%);
+    }
+
+    .day-detail-hero {
+        grid-template-columns: 74px minmax(0, 1fr);
+        gap: 12px;
+        padding: 12px;
+    }
+
+    .day-detail-hero .modal-icon {
+        width: 74px;
+        height: 74px;
+    }
+
+    .day-detail-hero .modal-icon svg {
+        width: 56px;
+        height: 56px;
+    }
+
+    .day-detail-copy .modal-title {
+        font-size: 1.05rem;
+    }
+
+    .day-detail-temp strong {
+        font-size: 1.85rem;
+    }
+
+    .day-detail-stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     .sun-info {
@@ -2370,20 +2856,26 @@ body.reduce-motion *::after {
 
     #tab-details.active {
         display: grid;
-        grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
-        gap: 18px;
+        grid-template-columns: minmax(420px, 1fr) minmax(320px, 0.78fr);
+        grid-template-areas:
+            "details chart"
+            "details sun";
+        gap: 16px;
         align-items: start;
     }
 
     #specialParamsDashboard {
-        grid-column: 1 / -1;
+        grid-area: details;
+        gap: 12px;
     }
 
     #sunVisual {
+        grid-area: sun;
         margin-top: 0;
     }
 
     #hourlyChartContainer {
+        grid-area: chart;
         margin-top: 0;
     }
 

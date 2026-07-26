@@ -404,6 +404,14 @@ function getTempRangeStyle(min, max, weekMin, weekMax) {
     return `--range-left:${left}%; --range-width:${width}%;`;
 }
 
+function formatDaylightDuration(sunrise, sunset) {
+    const [riseHour, riseMinute] = String(sunrise || "").split(":").map(Number);
+    const [setHour, setMinute] = String(sunset || "").split(":").map(Number);
+    if (![riseHour, riseMinute, setHour, setMinute].every(isNumber)) return "–";
+    const minutes = Math.max(0, (setHour * 60 + setMinute) - (riseHour * 60 + riseMinute));
+    return `${Math.floor(minutes / 60)} h ${minutes % 60} min`;
+}
+
 let searchDebounce = "";
 
 /**
@@ -908,7 +916,9 @@ const App = {
                     min: data.daily.temperature_2m_min[i],
                     rain: data.daily.precipitation_sum[i],
                     sunrise: data.daily.sunrise[i].split("T")[1],
-                    sunset: data.daily.sunset[i].split("T")[1]
+                    sunset: data.daily.sunset[i].split("T")[1],
+                    weekMin,
+                    weekMax
                 }, lat, lon);
             };
             grid.appendChild(day);
@@ -959,31 +969,47 @@ const App = {
     },
 
     async showDayDetails(d, lat, lon) {
+        const rainLevel = getLevel("rain", d.rain || 0);
+        const rangeStyle = getTempRangeStyle(d.min, d.max, d.weekMin ?? d.min, d.weekMax ?? d.max);
+        const daylight = formatDaylightDuration(d.sunrise, d.sunset);
         const overlay = document.createElement('div');
         overlay.className = 'modal-overlay';
         overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
 
         const content = document.createElement('div');
-        content.className = 'modal-content card';
+        content.className = 'modal-content card day-detail-modal';
         content.innerHTML = `
             <button class="modal-close" type="button" onclick="this.closest('.modal-overlay').remove()" aria-label="Schließen">&times;</button>
-            <h2 class="modal-title">${d.date}</h2>
-            <div class="modal-summary">
+            <div class="day-detail-hero">
                 <div class="modal-icon">${iconForCode(d.code)}</div>
-                <strong>${weatherText(d.code)}</strong>
+                <div class="day-detail-copy">
+                    <h2 class="modal-title">${d.date}</h2>
+                    <strong>${weatherText(d.code)}</strong>
+                    <div class="day-detail-temp">
+                        <strong>${formatTemp(d.max)}</strong>
+                        <span>${formatTemp(d.min)}</span>
+                    </div>
+                </div>
             </div>
-            <div class="modal-stats">
-                <div class="modal-stat">
-                    <small>Max</small><strong>${formatTemp(d.max)}</strong>
+            <div class="day-detail-range">
+                <div>
+                    <span>Min ${formatTemp(d.min)}</span>
+                    <span>Max ${formatTemp(d.max)}</span>
                 </div>
-                <div class="modal-stat">
-                    <small>Min</small><strong>${formatTemp(d.min)}</strong>
-                </div>
-                <div class="modal-stat">
+                <span class="temp-range" style="${rangeStyle}"><span></span></span>
+            </div>
+            <div class="modal-stats day-detail-stats">
+                <div class="modal-stat ${rainLevel.tone}">
                     <small>Niederschlag</small><strong>${formatMetric(d.rain, " mm", 1)}</strong>
                 </div>
                 <div class="modal-stat">
-                    <small>Sonne</small><strong>${d.sunrise} - ${d.sunset}</strong>
+                    <small>Tageslicht</small><strong>${daylight}</strong>
+                </div>
+                <div class="modal-stat">
+                    <small>Sonnenaufgang</small><strong>${d.sunrise}</strong>
+                </div>
+                <div class="modal-stat">
+                    <small>Sonnenuntergang</small><strong>${d.sunset}</strong>
                 </div>
             </div>
             <h3 class="modal-subtitle">Stündlicher Verlauf</h3>
@@ -1085,9 +1111,8 @@ const Specials = {
         return `
             <button class="detail-item ${status.tone}" type="button" onclick="Specials.showInfo('${title}', '${key}')">
                 <span class="detail-icon">${icon}</span>
-                <span>${title}</span>
+                <span class="detail-copy"><span>${title}</span><small>${status.label}</small></span>
                 <strong>${this.formatValue(key, value)}</strong>
-                <small>${status.label}</small>
             </button>
         `;
     },
