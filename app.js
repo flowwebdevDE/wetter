@@ -103,14 +103,47 @@ const weatherText = WEATHER_CONFIG.text;
 
 const STORAGE_KEYS = {
     defaultLocation: "weather_app_default",
-    favorites: "weather_app_favorites"
+    favorites: "weather_app_favorites",
+    settings: "weather_app_settings"
 };
+
+const CACHE_KEYS = ["currentWeatherCache", "hourlyWeatherCache", "specialsWeatherCache"];
 
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 const isNumber = (value) => typeof value === "number" && Number.isFinite(value);
-const formatNumber = (value, digits = 0) => isNumber(value) ? value.toFixed(digits).replace(".0", "") : "–";
-const formatTemp = (value) => isNumber(value) ? `${formatNumber(value)}°` : "–";
+const DEFAULT_SETTINGS = {
+    exactTemperature: false,
+    windUnit: "kmh",
+    glassEffect: true,
+    motion: true
+};
+
+function readAppSettings() {
+    try {
+        return { ...DEFAULT_SETTINGS, ...JSON.parse(localStorage.getItem(STORAGE_KEYS.settings) || "{}") };
+    } catch (e) {
+        return { ...DEFAULT_SETTINGS };
+    }
+}
+
+function writeAppSettings(settings) {
+    localStorage.setItem(STORAGE_KEYS.settings, JSON.stringify({ ...readAppSettings(), ...settings }));
+}
+
+const formatNumber = (value, digits = 0) => isNumber(value)
+    ? value.toLocaleString("de-DE", { minimumFractionDigits: digits, maximumFractionDigits: digits })
+    : "–";
+const formatTemp = (value) => {
+    const digits = readAppSettings().exactTemperature ? 1 : 0;
+    return isNumber(value) ? `${formatNumber(value, digits)}°` : "–";
+};
 const formatMetric = (value, unit = "", digits = 0) => isNumber(value) ? `${formatNumber(value, digits)}${unit}` : "–";
+const formatWind = (kmh) => {
+    if (!isNumber(kmh)) return "–";
+    const settings = readAppSettings();
+    if (settings.windUnit === "ms") return `${formatNumber(kmh / 3.6, 1)} m/s`;
+    return `${formatNumber(kmh)} km/h`;
+};
 const escapeHTML = (value) => String(value ?? "").replace(/[&<>"']/g, char => ({
     "&": "&amp;",
     "<": "&lt;",
@@ -226,8 +259,8 @@ function getLevel(type, value, context = {}) {
     return { label: "normal", tone: "neutral", meter: 50 };
 }
 
-function renderInsightCard({ label, value, unit, digits = 0, level, caption, icon, secondaryLabel, secondaryValue }) {
-    const display = formatMetric(value, unit, digits);
+function renderInsightCard({ label, value, unit, digits = 0, level, caption, icon, secondaryLabel, secondaryValue, display }) {
+    const displayValue = display || formatMetric(value, unit, digits);
     return `
         <div class="insight-card ${level.tone}" style="--meter:${level.meter}%">
             <div class="insight-top">
@@ -235,11 +268,11 @@ function renderInsightCard({ label, value, unit, digits = 0, level, caption, ico
                 <span class="level-chip">${level.label}</span>
             </div>
             <div class="metric-readout">
-                <strong>${display}</strong>
+                <strong>${displayValue}</strong>
                 ${secondaryValue ? `<span><b>${secondaryValue}</b>${secondaryLabel ? ` ${secondaryLabel}` : ""}</span>` : ""}
             </div>
             <span class="metric-meter" aria-hidden="true"><span></span></span>
-            <small>${caption}</small>
+            ${caption ? `<small>${caption}</small>` : ""}
         </div>
     `;
 }
@@ -251,7 +284,7 @@ function renderWeatherInsights({ apparent, humidity, rainToday, rainProbability,
             value: apparent,
             unit: "°",
             level: getLevel("temp", apparent),
-            caption: "Istwert, Tagesbereich kleiner darunter",
+            caption: "",
             secondaryValue: `${formatTemp(minTemp)} bis ${formatTemp(maxTemp)}`,
             secondaryLabel: "heute",
             icon: UI_ICONS.detailDewpoint()
@@ -262,7 +295,7 @@ function renderWeatherInsights({ apparent, humidity, rainToday, rainProbability,
             unit: isNumber(rainProbability) ? "%" : " mm",
             digits: isNumber(rainProbability) ? 0 : 1,
             level: getLevel("rain", rainToday || 0, { probability: rainProbability }),
-            caption: "Aktuelle Wahrscheinlichkeit zuerst",
+            caption: "",
             secondaryValue: `${formatMetric(rainToday, " mm", 1)}`,
             secondaryLabel: "heute",
             icon: UI_ICONS.rain()
@@ -270,10 +303,10 @@ function renderWeatherInsights({ apparent, humidity, rainToday, rainProbability,
         renderInsightCard({
             label: "Wind",
             value: wind,
-            unit: " km/h",
+            display: formatWind(wind),
             level: getLevel("wind", wind),
-            caption: "Aktuelle Geschwindigkeit im Fokus",
-            secondaryValue: isNumber(gusts) ? `${formatMetric(gusts, " km/h")}` : "",
+            caption: "",
+            secondaryValue: isNumber(gusts) ? formatWind(gusts) : "",
             secondaryLabel: "Böen",
             icon: UI_ICONS.featureWind()
         }),
@@ -281,7 +314,7 @@ function renderWeatherInsights({ apparent, humidity, rainToday, rainProbability,
             label: "UV",
             value: uv,
             level: getLevel("uv", uv),
-            caption: "Aktueller Index vor Tagesmaximum",
+            caption: "",
             secondaryValue: isNumber(uvMax) ? `${formatMetric(uvMax, "", 1)}` : "",
             secondaryLabel: "max.",
             icon: UI_ICONS.sun()
@@ -291,7 +324,7 @@ function renderWeatherInsights({ apparent, humidity, rainToday, rainProbability,
             value: humidity,
             unit: "%",
             level: getLevel("humidity", humidity),
-            caption: "Aktuelle relative Luftfeuchte",
+            caption: "",
             icon: UI_ICONS.detailHumidity()
         })
     ].join("");
@@ -313,15 +346,15 @@ function collectWeatherAlerts(data) {
         alerts.push({ tone: "risk", icon: UI_ICONS.heat(), title: "Hitze", text: `Maximalwert bis ${formatTemp(Math.max(todayMax, tomorrowMax))}` });
     }
     if (isNumber(gustToday) && gustToday >= 70) {
-        alerts.push({ tone: "risk", icon: UI_ICONS.windWarning(), title: "Starke Böen", text: `Böen bis ${formatMetric(gustToday, " km/h")}` });
+        alerts.push({ tone: "risk", icon: UI_ICONS.windWarning(), title: "Starke Böen", text: `Böen bis ${formatWind(gustToday)}` });
     } else if (isNumber(gustToday) && gustToday >= 50) {
-        alerts.push({ tone: "watch", icon: UI_ICONS.windWarning(), title: "Wind auffällig", text: `Böen bis ${formatMetric(gustToday, " km/h")}` });
+        alerts.push({ tone: "watch", icon: UI_ICONS.windWarning(), title: "Wind auffällig", text: `Böen bis ${formatWind(gustToday)}` });
     }
     if (isNumber(uvToday) && uvToday >= 6) {
-        alerts.push({ tone: "watch", icon: UI_ICONS.uvWarning(), title: "Hoher UV-Index", text: `Tagesmaximum ${formatMetric(uvToday, "", 1)}` });
+        alerts.push({ tone: "watch", icon: UI_ICONS.uvWarning(), title: "UV hoch", text: `Max. ${formatMetric(uvToday, "", 1)}` });
     }
     if (isNumber(rainToday) && rainToday >= 10) {
-        alerts.push({ tone: "watch", icon: UI_ICONS.rain(), title: "Viel Niederschlag", text: `${formatMetric(rainToday, " mm", 1)} heute erwartet` });
+        alerts.push({ tone: "watch", icon: UI_ICONS.rain(), title: "Viel Regen", text: `${formatMetric(rainToday, " mm", 1)} heute` });
     }
 
     return alerts;
@@ -334,8 +367,8 @@ function renderWeatherAlerts(data) {
             <div class="alert-card good">
                 <span class="alert-icon">${UI_ICONS.featureAlert()}</span>
                 <div>
-                    <strong>Keine markanten Warnungen</strong>
-                    <small>Frost, Hitze, UV, Wind und Regen liegen aktuell im unauffälligen Bereich.</small>
+                    <strong>Keine Warnungen</strong>
+                    <small>Alles ruhig.</small>
                 </div>
             </div>
         `;
@@ -436,6 +469,7 @@ const Favorites = {
         localStorage.setItem(STORAGE_KEYS.favorites, JSON.stringify(cleaned));
         this.render();
         App.updateLocationControls();
+        Settings.renderInfoStatus();
     },
 
     getDefault() {
@@ -475,6 +509,7 @@ const Favorites = {
         if (currentDefault && currentDefault.id === id) {
             localStorage.removeItem(STORAGE_KEYS.defaultLocation);
         }
+        Settings.renderInfoStatus();
         notify("Favorit entfernt.");
     },
 
@@ -485,6 +520,7 @@ const Favorites = {
         this.add(normalized);
         this.render();
         App.updateLocationControls();
+        Settings.renderInfoStatus();
         return true;
     },
 
@@ -511,7 +547,7 @@ const Favorites = {
                 <div class="empty-state">
                     <span>${UI_ICONS.navFavorites()}</span>
                     <strong>Noch keine Favoriten</strong>
-                    <small>Speichere den aktuellen Ort oder suche einen Ort und merke ihn dir danach.</small>
+                    <small>Keine gespeicherten Orte.</small>
                 </div>
             `;
             return;
@@ -541,6 +577,134 @@ const Favorites = {
 };
 
 window.Favorites = Favorites;
+
+const Settings = {
+    init() {
+        this.apply();
+        const openFavoritesSettingsBtn = document.getElementById("openFavoritesSettingsBtn");
+        const clearCacheBtn = document.getElementById("clearCacheBtn");
+        const resetSettingsBtn = document.getElementById("resetSettingsBtn");
+
+        document.querySelectorAll("[data-temp-mode]").forEach(button => {
+            button.addEventListener("click", () => this.update({ exactTemperature: button.dataset.tempMode === "exact" }));
+        });
+
+        document.querySelectorAll("[data-wind-unit]").forEach(button => {
+            button.addEventListener("click", () => this.update({ windUnit: button.dataset.windUnit }));
+        });
+
+        document.querySelectorAll("[data-glass-mode]").forEach(button => {
+            button.addEventListener("click", () => this.update({ glassEffect: button.dataset.glassMode === "glass" }));
+        });
+
+        document.querySelectorAll("[data-motion-mode]").forEach(button => {
+            button.addEventListener("click", () => this.update({ motion: button.dataset.motionMode === "dynamic" }));
+        });
+
+        if (openFavoritesSettingsBtn) {
+            openFavoritesSettingsBtn.addEventListener("click", () => this.openFavorites());
+        }
+
+        if (clearCacheBtn) {
+            clearCacheBtn.addEventListener("click", () => this.clearWeatherCache());
+        }
+
+        if (resetSettingsBtn) {
+            resetSettingsBtn.addEventListener("click", () => this.reset());
+        }
+    },
+
+    update(partial) {
+        writeAppSettings(partial);
+        this.apply();
+        App.refreshCurrentView();
+    },
+
+    apply() {
+        const settings = readAppSettings();
+        document.body.classList.toggle("glass-rich", settings.glassEffect);
+        document.body.classList.toggle("reduce-motion", !settings.motion);
+
+        const temperatureStatus = document.getElementById("temperatureStatus");
+        const glassEffectStatus = document.getElementById("glassEffectStatus");
+        const motionStatus = document.getElementById("motionStatus");
+
+        if (temperatureStatus) temperatureStatus.textContent = settings.exactTemperature ? "Mit Komma" : "Ganze Grad";
+        if (glassEffectStatus) glassEffectStatus.textContent = settings.glassEffect ? "Glas" : "Klar";
+        if (motionStatus) motionStatus.textContent = settings.motion ? "Dynamisch" : "Ruhig";
+
+        this.setActiveChoice("[data-temp-mode]", button => {
+            return settings.exactTemperature ? button.dataset.tempMode === "exact" : button.dataset.tempMode === "rounded";
+        });
+
+        this.setActiveChoice("[data-wind-unit]", button => button.dataset.windUnit === settings.windUnit);
+        this.setActiveChoice("[data-glass-mode]", button => {
+            return settings.glassEffect ? button.dataset.glassMode === "glass" : button.dataset.glassMode === "clear";
+        });
+        this.setActiveChoice("[data-motion-mode]", button => {
+            return settings.motion ? button.dataset.motionMode === "dynamic" : button.dataset.motionMode === "calm";
+        });
+
+        const windStatus = document.getElementById("windUnitStatus");
+        if (windStatus) windStatus.textContent = settings.windUnit === "ms" ? "m/s" : "km/h";
+        this.renderInfoStatus();
+    },
+
+    setActiveChoice(selector, isActive) {
+        document.querySelectorAll(selector).forEach(button => {
+            const active = isActive(button);
+            button.classList.toggle("active", active);
+            button.setAttribute("aria-pressed", String(active));
+        });
+    },
+
+    renderInfoStatus() {
+        const settings = readAppSettings();
+        const favorites = Favorites.read();
+        const currentDefault = Favorites.getDefault();
+        const currentCache = this.getCacheStamp();
+
+        const favoriteCount = document.getElementById("infoFavoritesCount");
+        const defaultLocation = document.getElementById("infoDefaultLocation");
+        const cacheState = document.getElementById("infoCacheState");
+        const windUnit = document.getElementById("infoWindUnit");
+
+        if (favoriteCount) favoriteCount.textContent = String(favorites.length);
+        if (defaultLocation) defaultLocation.textContent = currentDefault ? splitLocationLabel(currentDefault.label).primary : "Keiner";
+        if (cacheState) cacheState.textContent = currentCache || "Leer";
+        if (windUnit) windUnit.textContent = settings.windUnit === "ms" ? "m/s" : "km/h";
+    },
+
+    getCacheStamp() {
+        for (const key of CACHE_KEYS) {
+            try {
+                const cache = JSON.parse(localStorage.getItem(key) || "null");
+                if (cache && cache.stamp) return String(cache.stamp).split(",")[0];
+            } catch (e) {
+                continue;
+            }
+        }
+        return "";
+    },
+
+    clearWeatherCache() {
+        CACHE_KEYS.forEach(key => localStorage.removeItem(key));
+        this.renderInfoStatus();
+        notify("Cache geleert.");
+    },
+
+    reset() {
+        localStorage.removeItem(STORAGE_KEYS.settings);
+        this.apply();
+        App.refreshCurrentView();
+        notify("Einstellungen zurückgesetzt.");
+    },
+
+    openFavorites() {
+        const favoritesNav = document.querySelector('.nav-item[data-tab="tab-favorites"]');
+        if (favoritesNav) favoritesNav.click();
+    }
+};
 
 const App = {
     init() {
@@ -629,10 +793,12 @@ const App = {
         // Event Listener für die Bottom Navigation
         document.querySelectorAll('.nav-item').forEach(btn => {
             btn.onclick = () => {
+                const tabId = btn.dataset.tab;
                 document.querySelectorAll('.nav-item, .tab-content').forEach(el => el.classList.remove('active'));
                 btn.classList.add('active');
-                document.getElementById(btn.dataset.tab).classList.add('active');
-                if (btn.dataset.tab === "tab-favorites") Favorites.render();
+                document.getElementById(tabId).classList.add('active');
+                document.body.classList.toggle("settings-view-active", tabId === "tab-info");
+                if (tabId === "tab-favorites") Favorites.render();
                 
                 if (window.myChart) window.myChart.resize();
                 
@@ -640,6 +806,7 @@ const App = {
             };
         });
         Favorites.render();
+        Settings.init();
     },
 
     async fetchFullWeather(lat, lon, label) {
@@ -660,6 +827,7 @@ const App = {
     },
 
     render(data, lat, lon, label) {
+        this.lastWeather = { data, lat, lon, label };
         document.getElementById('weather').hidden = false;
         this.currentLocation = normalizeLocation({ lat, lon, label: label || `${lat.toFixed(3)}, ${lon.toFixed(3)}` });
         renderLocationHeader(this.currentLocation);
@@ -679,7 +847,7 @@ const App = {
         document.getElementById('temp').innerHTML = `${formatTemp(cw.temperature)}`;
         document.getElementById('currentSummary').innerHTML = `
             <strong>${weatherText(cw.weathercode)}</strong>
-            <span>Gefühlt ${formatTemp(apparent)} · Wind ${formatMetric(cw.windspeed, " km/h")}${isNumber(humidity) ? ` · Feuchte ${humidity}%` : ""}</span>
+            <span>Gefühlt ${formatTemp(apparent)} · Wind ${formatWind(cw.windspeed)}${isNumber(humidity) ? ` · Feuchte ${humidity}%` : ""}</span>
         `;
         const insights = document.getElementById('weatherInsights');
         if (insights) {
@@ -697,16 +865,6 @@ const App = {
             });
         }
 
-        const saveBtn = document.getElementById('saveDefaultBtn');
-        if (saveBtn) {
-            saveBtn.classList.add('is-visible');
-            saveBtn.onclick = () => App.saveCurrentFavorite();
-        }
-        const defaultBtn = document.getElementById('setDefaultBtn');
-        if (defaultBtn) {
-            defaultBtn.classList.add('is-visible');
-            defaultBtn.onclick = () => App.setCurrentAsDefault();
-        }
         this.updateLocationControls();
 
         const alertPanel = document.getElementById('alertPanel');
@@ -758,6 +916,13 @@ const App = {
         
         renderDailyOverview(lat, lon, data.daily.sunrise[0], data.daily.sunset[0]);
         Favorites.render();
+        Settings.renderInfoStatus();
+    },
+
+    refreshCurrentView() {
+        if (!this.lastWeather) return;
+        const { data, lat, lon, label } = this.lastWeather;
+        this.render(data, lat, lon, label);
     },
 
     updateLocationControls() {
@@ -766,15 +931,11 @@ const App = {
         const isDefault = Favorites.isDefault(location);
         const quickFavoriteBtn = document.getElementById('quickFavoriteBtn');
         const quickDefaultBtn = document.getElementById('quickDefaultBtn');
-        const saveBtn = document.getElementById('saveDefaultBtn');
-        const defaultBtn = document.getElementById('setDefaultBtn');
         const addCurrentFavoriteBtn = document.getElementById('addCurrentFavoriteBtn');
 
         if (quickFavoriteBtn) quickFavoriteBtn.classList.toggle('active', favorite);
         if (quickDefaultBtn) quickDefaultBtn.classList.toggle('active', isDefault);
-        if (saveBtn) saveBtn.textContent = favorite ? "Favorit aktualisieren" : "Favorit speichern";
-        if (defaultBtn) defaultBtn.textContent = isDefault ? "Aktueller Startort" : "Als Startort setzen";
-        if (addCurrentFavoriteBtn) addCurrentFavoriteBtn.textContent = favorite ? "Favorit aktualisieren" : "Aktuellen Ort merken";
+        if (addCurrentFavoriteBtn) addCurrentFavoriteBtn.textContent = favorite ? "Favorit aktualisieren" : "Ort merken";
     },
 
     saveCurrentFavorite() {
@@ -855,7 +1016,7 @@ const App = {
                         <div class="modal-hour-time">${hour}</div>
                         <div class="mini-icon">${iconForCode(code, isNight)}</div>
                         <div class="modal-hour-temp">${formatTemp(hourlyData.hourly.temperature_2m[i])}</div>
-                        <div class="modal-hour-wind ${windLevel.tone}">${UI_ICONS.windArrow(windDeg)} ${formatMetric(windSpeed, " km/h")}</div>
+                        <div class="modal-hour-wind ${windLevel.tone}">${UI_ICONS.windArrow(windDeg)} ${formatWind(windSpeed)}</div>
                         <div class="modal-hour-rain">${formatMetric(rain, " mm", 1)}</div>
                     `;
                     grid.appendChild(hourItem);
@@ -932,12 +1093,12 @@ const Specials = {
     },
     getExplanation: function(key) {
         const info = {
-            uv: "Der UV-Index misst die Sonnenbrandgefahr. Ab Stufe 3 ist Sonnenschutz empfohlen.",
-            pressure: "Der Luftdruck zeigt Wetteränderungen an. Sinkender Druck deutet oft auf Regen hin.",
-            dewpoint: "Der Taupunkt beschreibt die Schwüle. Ab 16°C wird die Luft als drückend empfunden.",
-            visibility: "Die Sichtweite gibt an, wie weit markante Objekte klar erkennbar sind.",
-            snow: "Berechneter Neuschnee in den nächsten Stunden.",
-            humidity: "Die relative Luftfeuchtigkeit gibt an, wie viel Wasserdampf die Luft im Verhältnis zum Sättigungszustand enthält."
+            uv: "Ab 3 Sonnenschutz, ab 6 hoch.",
+            pressure: "Tiefer Druck spricht eher für Wechselwetter.",
+            dewpoint: "Ab 16° wirkt Luft oft schwül.",
+            visibility: "Unter 2 km deutlich eingeschränkt.",
+            snow: "Neuschnee und Schneehöhe.",
+            humidity: "40-60% fühlt sich meist angenehm an."
         };
         return info[key] || "Detaillierte meteorologische Messung für diesen Standort.";
     },

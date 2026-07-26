@@ -6,9 +6,9 @@
 :root {
     --bg: #edf5f7;
     --bg-warm: #f7f3ea;
-    --surface: rgba(255, 255, 255, 0.9);
+    --surface: rgba(255, 255, 255, 0.72);
     --surface-solid: #ffffff;
-    --surface-soft: #f4f8fa;
+    --surface-soft: rgba(244, 248, 250, 0.72);
     --ink: #162033;
     --muted: #607082;
     --faint: #8a99a7;
@@ -23,6 +23,8 @@
     --risk: #c2412d;
     --nav: #122233;
     --shadow: 0 18px 60px rgba(23, 39, 58, 0.13);
+    --glass-border: rgba(255, 255, 255, 0.62);
+    --glass-highlight: rgba(255, 255, 255, 0.46);
     --radius: 8px;
 }
 
@@ -30,6 +32,14 @@ html,
 body {
     min-height: 100%;
     margin: 0;
+}
+
+body.glass-rich {
+    background:
+        linear-gradient(135deg, rgba(255, 255, 255, 0.76) 0%, rgba(255, 255, 255, 0) 28%),
+        linear-gradient(165deg, rgba(15, 159, 154, 0.18) 0%, rgba(15, 159, 154, 0) 42%),
+        linear-gradient(24deg, rgba(245, 184, 65, 0.16) 0%, rgba(245, 184, 65, 0) 46%),
+        linear-gradient(180deg, #f9fbfc 0%, var(--bg) 100%);
 }
 
 html {
@@ -85,26 +95,32 @@ header {
 main {
     width: min(1180px, 100%);
     margin: 0 auto;
-    padding: calc(14px + env(safe-area-inset-top)) 16px calc(104px + env(safe-area-inset-bottom));
+    padding: calc(10px + env(safe-area-inset-top)) 14px calc(96px + env(safe-area-inset-bottom));
 }
 
 .location-hero {
     width: min(1180px, 100%);
-    margin: 0 auto 14px;
+    margin: 0 auto 10px;
+}
+
+body.settings-view-active .location-hero {
+    display: none;
 }
 
 .location-shell {
+    position: relative;
+    overflow: hidden;
     display: grid;
     grid-template-columns: auto minmax(0, 1fr) auto;
     align-items: center;
-    gap: 12px;
-    padding: 12px;
-    background: rgba(255, 255, 255, 0.78);
-    border: 1px solid var(--line);
+    gap: 10px;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.66);
+    border: 1px solid var(--glass-border);
     border-radius: var(--radius);
     box-shadow: 0 12px 36px rgba(23, 39, 58, 0.08);
-    backdrop-filter: blur(18px);
-    -webkit-backdrop-filter: blur(18px);
+    backdrop-filter: blur(22px) saturate(1.35);
+    -webkit-backdrop-filter: blur(22px) saturate(1.35);
 }
 
 .location-marker {
@@ -138,7 +154,7 @@ main {
 #placeName {
     margin: 0;
     color: var(--ink);
-    font-size: 1.35rem;
+    font-size: 1.22rem;
     font-weight: 800;
     line-height: 1.15;
     overflow: hidden;
@@ -164,8 +180,8 @@ main {
 .icon-btn {
     display: grid;
     place-items: center;
-    width: 42px;
-    height: 42px;
+    width: 38px;
+    height: 38px;
     color: var(--muted);
     background: var(--surface-solid);
     border: 1px solid var(--line);
@@ -175,8 +191,8 @@ main {
 }
 
 .icon-btn svg {
-    width: 22px;
-    height: 22px;
+    width: 20px;
+    height: 20px;
 }
 
 .icon-btn:hover,
@@ -231,20 +247,54 @@ main {
 }
 
 .card {
+    position: relative;
+    overflow: hidden;
     color: var(--ink);
     background: var(--surface);
-    border: 1px solid var(--line);
+    border: 1px solid var(--glass-border);
     border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    padding: 18px;
-    margin-top: 14px;
-    backdrop-filter: blur(18px);
-    -webkit-backdrop-filter: blur(18px);
+    box-shadow: var(--shadow), inset 0 1px 0 var(--glass-highlight);
+    padding: 16px;
+    margin-top: 12px;
+    backdrop-filter: blur(24px) saturate(1.35);
+    -webkit-backdrop-filter: blur(24px) saturate(1.35);
+}
+
+body.glass-rich .card::before,
+body.glass-rich .location-shell::before,
+body.glass-rich .bottom-nav::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+        linear-gradient(120deg, rgba(255, 255, 255, 0.46), rgba(255, 255, 255, 0.08) 34%, rgba(255, 255, 255, 0) 62%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0));
+    opacity: 0.75;
+    z-index: 0;
 }
 
 .card > h3,
 .card > h2 {
+    position: relative;
     margin-top: 0;
+}
+
+.card > * {
+    position: relative;
+    z-index: 1;
+}
+
+.location-shell > *,
+.bottom-nav > * {
+    position: relative;
+    z-index: 1;
+}
+
+.liquid-panel {
+    background:
+        linear-gradient(145deg, rgba(255, 255, 255, 0.42), rgba(255, 255, 255, 0.16)),
+        var(--surface);
 }
 
 .section-heading {
@@ -252,7 +302,7 @@ main {
     align-items: end;
     justify-content: space-between;
     gap: 16px;
-    margin-bottom: 14px;
+    margin-bottom: 12px;
 }
 
 .section-heading h2,
@@ -290,15 +340,15 @@ main {
     position: relative;
     display: grid;
     grid-template-columns: 1fr;
-    gap: 10px;
-    margin-bottom: 14px;
+    gap: 8px;
+    margin-bottom: 10px;
 }
 
 .search-field {
     position: relative;
     display: flex;
     align-items: center;
-    min-height: 48px;
+    min-height: 42px;
 }
 
 .search-icon {
@@ -326,7 +376,7 @@ main {
 
 #searchBox {
     width: 100%;
-    min-height: 48px;
+    min-height: 42px;
     padding: 0 16px 0 42px;
     color: var(--ink);
     background: var(--surface-solid);
@@ -351,7 +401,7 @@ main {
 .secondary-action,
 .info-link-btn {
     display: inline-flex;
-    min-height: 44px;
+    min-height: 40px;
     align-items: center;
     justify-content: center;
     gap: 8px;
@@ -382,7 +432,7 @@ main {
 
 #suggestionsList {
     position: absolute;
-    top: 58px;
+    top: 50px;
     left: 0;
     right: 0;
     max-height: 260px;
@@ -417,6 +467,7 @@ main {
 
 .current-card {
     margin-top: 0;
+    padding: 14px;
     color: #fff;
     background:
         linear-gradient(145deg, rgba(18, 34, 51, 0.98), rgba(29, 116, 166, 0.92)),
@@ -427,16 +478,16 @@ main {
 
 .current-main {
     display: grid;
-    grid-template-columns: 104px 1fr;
+    grid-template-columns: 86px minmax(0, 1fr);
     align-items: center;
-    gap: 16px;
+    gap: 12px;
 }
 
 #icon {
     display: grid;
     place-items: center;
-    width: 104px;
-    height: 104px;
+    width: 86px;
+    height: 86px;
     margin: 0;
     background: rgba(255, 255, 255, 0.12);
     border: 1px solid rgba(255, 255, 255, 0.14);
@@ -444,21 +495,21 @@ main {
 }
 
 #icon svg {
-    width: 82px;
-    height: 82px;
+    width: 68px;
+    height: 68px;
     filter: drop-shadow(0 12px 18px rgba(0, 0, 0, 0.18));
 }
 
 #temp {
     margin: 0;
     color: #fff;
-    font-size: 3.1rem;
+    font-size: 2.65rem;
     font-weight: 900;
     line-height: 0.95;
 }
 
 #currentSummary {
-    margin-top: 8px;
+    margin-top: 6px;
     display: grid;
     gap: 3px;
 }
@@ -477,16 +528,16 @@ main {
 .insight-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 10px;
-    margin-top: 18px;
+    gap: 8px;
+    margin-top: 12px;
 }
 
 .insight-card {
     --tone: rgba(255, 255, 255, 0.78);
     display: grid;
-    gap: 9px;
+    gap: 7px;
     min-width: 0;
-    padding: 12px;
+    padding: 10px;
     color: #fff;
     background: rgba(255, 255, 255, 0.1);
     border: 1px solid rgba(255, 255, 255, 0.13);
@@ -572,7 +623,7 @@ main {
 
 .insight-card strong {
     color: #fff;
-    font-size: 1.32rem;
+    font-size: 1.18rem;
     line-height: 1;
 }
 
@@ -616,15 +667,15 @@ main {
 
 .details-strip {
     display: grid;
-    gap: 10px;
-    margin-top: 14px;
+    gap: 8px;
+    margin-top: 10px;
 }
 
 .alert-panel {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 10px;
-    margin: 0 0 14px;
+    gap: 8px;
+    margin: 0 0 10px;
 }
 
 .alert-card {
@@ -634,7 +685,7 @@ main {
     align-items: center;
     gap: 10px;
     min-width: 0;
-    padding: 12px;
+    padding: 10px;
     color: var(--ink);
     background: rgba(255, 255, 255, 0.9);
     border: 1px solid var(--line);
@@ -708,7 +759,7 @@ main {
     align-items: center;
     column-gap: 8px;
     min-width: 0;
-    padding: 10px;
+    padding: 8px;
     color: #fff;
     background: rgba(255, 255, 255, 0.1);
     border: 1px solid rgba(255, 255, 255, 0.12);
@@ -742,7 +793,7 @@ main {
     grid-template-columns: auto 1fr;
     align-items: center;
     gap: 10px;
-    padding: 10px;
+    padding: 8px;
     color: #fff;
     background: rgba(255, 255, 255, 0.1);
     border: 1px solid rgba(255, 255, 255, 0.12);
@@ -771,7 +822,7 @@ main {
 
 .secondary-btn {
     width: 100%;
-    margin-top: 14px;
+    margin-top: 10px;
     color: #123;
     background: rgba(255, 255, 255, 0.84);
     display: none;
@@ -798,17 +849,6 @@ main {
     color: #fff;
 }
 
-.current-actions {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 10px;
-    margin-top: 14px;
-}
-
-.current-actions .secondary-btn {
-    margin-top: 0;
-}
-
 .forecast-panel {
     overflow: hidden;
 }
@@ -817,7 +857,7 @@ main {
     display: grid;
     grid-auto-flow: column;
     grid-auto-columns: minmax(128px, 1fr);
-    gap: 10px;
+    gap: 8px;
     overflow-x: auto;
     padding: 2px 2px 12px;
     scroll-snap-type: x mandatory;
@@ -838,9 +878,9 @@ main {
 
 .hour {
     display: grid;
-    gap: 10px;
+    gap: 8px;
     min-width: 0;
-    padding: 12px;
+    padding: 10px;
     color: var(--ink);
     background: var(--surface-soft);
     border: 1px solid var(--line);
@@ -1501,7 +1541,10 @@ main {
 }
 
 .info-hero {
-    text-align: center;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 14px;
     padding: 28px 18px;
     background:
         linear-gradient(145deg, rgba(29, 116, 166, 0.1), rgba(245, 184, 65, 0.12)),
@@ -1509,7 +1552,322 @@ main {
 }
 
 .info-hero h2 {
-    margin: 10px 0 5px;
+    margin: 0 0 5px;
+    font-size: 1.35rem;
+}
+
+.info-pills {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.info-pills span {
+    padding: 6px 9px;
+    color: var(--sky);
+    background: rgba(255, 255, 255, 0.54);
+    border: 1px solid rgba(29, 116, 166, 0.14);
+    border-radius: var(--radius);
+    font-size: 0.74rem;
+    font-weight: 900;
+}
+
+.info-layout {
+    display: grid;
+    gap: 14px;
+}
+
+.app-status-card {
+    display: grid;
+    gap: 12px;
+}
+
+.info-status-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.status-tile {
+    display: grid;
+    gap: 6px;
+    min-width: 0;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.45);
+    border: 1px solid rgba(255, 255, 255, 0.56);
+    border-radius: var(--radius);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.48);
+}
+
+.status-tile span {
+    color: var(--muted);
+    font-size: 0.72rem;
+    font-weight: 900;
+}
+
+.status-tile strong {
+    overflow: hidden;
+    color: var(--ink);
+    font-size: 1.08rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.info-card {
+    display: grid;
+    gap: 12px;
+}
+
+.info-card h3 {
+    margin: 0;
+}
+
+.settings-card {
+    display: grid;
+    gap: 12px;
+}
+
+.data-actions-card {
+    display: grid;
+    gap: 12px;
+}
+
+.setting-row {
+    display: grid;
+    gap: 12px;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.42);
+    border: 1px solid rgba(255, 255, 255, 0.56);
+    border-radius: var(--radius);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.44);
+}
+
+.setting-row > span {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    min-width: 0;
+}
+
+.setting-row strong {
+    font-size: 0.94rem;
+}
+
+.setting-row > span strong {
+    min-width: 0;
+}
+
+.setting-row small {
+    color: var(--muted);
+    font-size: 0.76rem;
+    font-weight: 750;
+}
+
+.segmented-control {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 4px;
+    padding: 4px;
+    background: rgba(22, 32, 51, 0.08);
+    border: 1px solid rgba(22, 32, 51, 0.08);
+    border-radius: var(--radius);
+}
+
+.segmented-control button {
+    min-height: 38px;
+    padding: 0 12px;
+    color: var(--muted);
+    background: transparent;
+    border-radius: 6px;
+    font-size: 0.82rem;
+    font-weight: 900;
+    cursor: pointer;
+    transition: color 0.18s ease, background 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+}
+
+.segmented-control button.active {
+    color: var(--ink);
+    background: rgba(255, 255, 255, 0.72);
+    box-shadow: 0 5px 14px rgba(23, 39, 58, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.74);
+}
+
+.segmented-control button:active,
+.mode-card:active {
+    transform: translateY(1px);
+}
+
+.mode-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.mode-card {
+    display: grid;
+    grid-template-columns: 42px minmax(0, 1fr);
+    align-items: center;
+    gap: 10px;
+    min-height: 74px;
+    padding: 10px;
+    color: var(--ink);
+    text-align: left;
+    background: rgba(255, 255, 255, 0.36);
+    border: 1px solid rgba(255, 255, 255, 0.54);
+    border-radius: var(--radius);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.42);
+    cursor: pointer;
+    transition: color 0.18s ease, background 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+}
+
+.mode-card span:last-child {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+}
+
+.mode-card strong,
+.mode-card small {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.mode-card.active {
+    background: rgba(255, 255, 255, 0.74);
+    border-color: rgba(29, 116, 166, 0.28);
+    box-shadow: 0 10px 24px rgba(23, 39, 58, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.74);
+}
+
+.mode-card.active strong {
+    color: var(--sky);
+}
+
+.mode-visual {
+    position: relative;
+    display: block;
+    width: 42px;
+    height: 42px;
+    overflow: hidden;
+    background: rgba(22, 32, 51, 0.08);
+    border: 1px solid rgba(22, 32, 51, 0.08);
+    border-radius: var(--radius);
+}
+
+.mode-visual::before,
+.mode-visual::after {
+    content: "";
+    position: absolute;
+    border-radius: 6px;
+}
+
+.glass-sample {
+    background:
+        linear-gradient(145deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.18)),
+        linear-gradient(135deg, rgba(15, 159, 154, 0.32), rgba(245, 184, 65, 0.22));
+    border-color: rgba(255, 255, 255, 0.66);
+}
+
+.glass-sample::before {
+    inset: 8px 11px 18px 7px;
+    background: rgba(255, 255, 255, 0.6);
+}
+
+.glass-sample::after {
+    inset: 23px 7px 8px 17px;
+    background: rgba(255, 255, 255, 0.38);
+}
+
+.clear-sample {
+    background: #fff;
+}
+
+.clear-sample::before {
+    inset: 9px 8px 25px;
+    background: rgba(29, 116, 166, 0.16);
+}
+
+.clear-sample::after {
+    inset: 22px 8px 11px;
+    background: rgba(22, 32, 51, 0.12);
+}
+
+.motion-sample {
+    background:
+        linear-gradient(135deg, rgba(29, 116, 166, 0.14), rgba(15, 159, 154, 0.22));
+}
+
+.motion-sample::before {
+    top: 10px;
+    left: 8px;
+    width: 24px;
+    height: 7px;
+    background: rgba(29, 116, 166, 0.76);
+    box-shadow: 8px 11px 0 rgba(15, 159, 154, 0.5);
+    transform: skewX(-18deg);
+}
+
+.motion-sample::after {
+    right: 7px;
+    bottom: 9px;
+    width: 12px;
+    height: 3px;
+    background: rgba(245, 184, 65, 0.82);
+}
+
+.calm-sample {
+    background: rgba(255, 255, 255, 0.78);
+}
+
+.calm-sample::before {
+    inset: 13px 8px 22px;
+    background: rgba(22, 32, 51, 0.16);
+}
+
+.calm-sample::after {
+    inset: 25px 8px 13px;
+    background: rgba(22, 32, 51, 0.1);
+}
+
+.settings-actions {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.settings-action {
+    min-width: 0;
+    min-height: 42px;
+    padding: 0 10px;
+    overflow: hidden;
+    color: var(--sky);
+    background: rgba(255, 255, 255, 0.46);
+    border: 1px solid rgba(29, 116, 166, 0.16);
+    border-radius: var(--radius);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.44);
+    cursor: pointer;
+    font-size: 0.82rem;
+    font-weight: 900;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    transition: color 0.18s ease, background 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+}
+
+.settings-action:hover {
+    color: #fff;
+    background: var(--sky);
+    border-color: transparent;
+}
+
+.settings-action.danger {
+    color: var(--risk);
+    border-color: rgba(194, 65, 45, 0.18);
+}
+
+.settings-action.danger:hover {
+    color: #fff;
+    background: var(--risk);
 }
 
 .app-logo-large svg {
@@ -1533,20 +1891,25 @@ main {
     list-style: none;
     padding: 0;
     margin: 0;
+    display: grid;
+    gap: 8px;
 }
 
 .info-list li {
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 12px 0;
+    padding: 10px;
     color: var(--ink);
-    border-bottom: 1px solid var(--line);
+    background: rgba(255, 255, 255, 0.38);
+    border: 1px solid rgba(255, 255, 255, 0.52);
+    border-radius: var(--radius);
     font-size: 0.95rem;
+    font-weight: 750;
 }
 
 .info-list li:last-child {
-    border-bottom: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.52);
 }
 
 .info-icon {
@@ -1593,6 +1956,7 @@ main {
 
 .bottom-nav {
     position: fixed;
+    overflow: hidden;
     bottom: 0;
     padding-bottom: 25px;
     z-index: 2000;
@@ -1659,55 +2023,116 @@ main {
     pointer-events: none;
 }
 
+body.reduce-motion *,
+body.reduce-motion *::before,
+body.reduce-motion *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.001ms !important;
+}
+
 @media (max-width: 620px) {
     main {
-        padding-left: 12px;
-        padding-right: 12px;
+        padding-left: 10px;
+        padding-right: 10px;
     }
 
     .location-shell {
-        grid-template-columns: auto minmax(0, 1fr);
-        align-items: start;
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 8px;
+        padding: 8px;
+    }
+
+    .location-marker {
+        width: 34px;
+        height: 34px;
+    }
+
+    .location-marker svg {
+        width: 20px;
+        height: 20px;
     }
 
     .location-actions {
-        grid-column: 1 / -1;
-        justify-content: stretch;
+        grid-column: auto;
+        justify-content: end;
+        gap: 6px;
     }
 
     .location-actions .icon-btn {
-        width: 100%;
+        width: 34px;
+        height: 34px;
     }
 
     #placeName {
-        font-size: 1.12rem;
+        font-size: 1.03rem;
+    }
+
+    .location-label {
+        font-size: 0.66rem;
+    }
+
+    .location-meta,
+    #header-date {
+        font-size: 0.7rem;
     }
 
     .card {
-        padding: 14px;
+        padding: 12px;
+    }
+
+    .search-container {
+        grid-template-columns: minmax(0, 1fr) auto;
+        margin-bottom: 8px;
+    }
+
+    #geoBtn {
+        min-height: 42px;
+        padding: 0 10px;
+        font-size: 0.78rem;
+        white-space: nowrap;
     }
 
     .current-main {
-        grid-template-columns: 86px 1fr;
-        gap: 12px;
+        grid-template-columns: 72px minmax(0, 1fr);
+        gap: 10px;
     }
 
     #icon {
-        width: 86px;
-        height: 86px;
+        width: 72px;
+        height: 72px;
     }
 
     #icon svg {
-        width: 68px;
-        height: 68px;
+        width: 56px;
+        height: 56px;
     }
 
     #temp {
-        font-size: 2.45rem;
+        font-size: 2.2rem;
     }
 
     .insight-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .insight-top > span:first-child {
+        font-size: 0.72rem;
+    }
+
+    .level-chip {
+        padding: 3px 5px;
+        font-size: 0.62rem;
+    }
+
+    .insight-card strong {
+        font-size: 1.06rem;
+    }
+
+    .current-card .sun-info {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     .section-heading {
@@ -1743,7 +2168,41 @@ main {
         grid-template-columns: 1fr;
     }
 
-    .current-actions,
+    .info-hero {
+        grid-template-columns: 1fr;
+        text-align: center;
+    }
+
+    .info-pills {
+        justify-content: center;
+    }
+
+    .info-status-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .setting-row {
+        align-items: stretch;
+    }
+
+    .setting-row > span {
+        align-items: start;
+        flex-direction: column;
+        gap: 3px;
+    }
+
+    .segmented-control {
+        width: 100%;
+    }
+
+    .mode-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .settings-actions {
+        grid-template-columns: 1fr;
+    }
+
     .favorite-row {
         grid-template-columns: 1fr;
     }
@@ -1754,6 +2213,27 @@ main {
 
     .favorite-actions button {
         flex: 1 1 120px;
+    }
+}
+
+@media (max-width: 360px) {
+    .location-shell {
+        grid-template-columns: auto minmax(0, 1fr);
+    }
+
+    .location-actions {
+        grid-column: 1 / -1;
+        justify-content: stretch;
+    }
+
+    .location-actions .icon-btn {
+        width: auto;
+        flex: 1 1 0;
+    }
+
+    .search-container,
+    .insight-grid {
+        grid-template-columns: 1fr;
     }
 }
 
@@ -1779,31 +2259,54 @@ main {
             linear-gradient(180deg, #f9fbfc 0%, #edf5f7 100%);
     }
 
+    body.glass-rich {
+        background:
+            linear-gradient(135deg, rgba(255, 255, 255, 0.72) 0%, rgba(255, 255, 255, 0) 28%),
+            linear-gradient(145deg, rgba(14, 165, 168, 0.16), rgba(245, 184, 65, 0.11) 42%, transparent 68%),
+            linear-gradient(180deg, #f9fbfc 0%, #edf5f7 100%);
+    }
+
     main {
         width: min(1320px, 100%);
         margin: 0;
-        padding: 26px 32px 48px;
+        padding: 20px 28px 42px;
     }
 
     .location-hero {
         width: min(1320px, 100%);
-        margin-bottom: 18px;
+        margin-bottom: 12px;
     }
 
     #tab-today.active {
         display: grid;
-        grid-template-columns: minmax(330px, 0.78fr) minmax(0, 1.42fr);
+        grid-template-columns: minmax(360px, 0.9fr) minmax(300px, 1fr);
         grid-template-areas:
-            "search search"
-            "alerts alerts"
-            "current hourly";
+            "current search"
+            "current alerts"
+            "hourly hourly";
         align-items: start;
-        gap: 18px;
+        gap: 16px;
+    }
+
+    #tab-today.active > * {
+        min-width: 0;
     }
 
     #tab-today.active .search-container {
         grid-area: search;
         margin-bottom: 0;
+        padding: 12px;
+        background: var(--surface);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow), inset 0 1px 0 var(--glass-highlight);
+        backdrop-filter: blur(24px) saturate(1.35);
+        -webkit-backdrop-filter: blur(24px) saturate(1.35);
+    }
+
+    #tab-today.active #suggestionsList {
+        top: 58px;
+        right: 142px;
     }
 
     #tab-today.active .alert-panel {
@@ -1815,16 +2318,20 @@ main {
         grid-area: current;
     }
 
+    #tab-today.active .current-card .insight-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
     #dailyOverview {
         grid-area: hourly;
         margin-top: 0;
     }
 
     #hourlyForecastGrid {
-        grid-auto-flow: initial;
-        grid-template-columns: repeat(auto-fill, minmax(136px, 1fr));
-        overflow-x: visible;
-        padding-bottom: 0;
+        grid-auto-flow: column;
+        grid-auto-columns: minmax(126px, 1fr);
+        overflow-x: auto;
+        padding-bottom: 10px;
     }
 
     #tab-forecast.active,
@@ -1832,6 +2339,33 @@ main {
     #tab-favorites.active,
     #tab-info.active {
         max-width: 1080px;
+    }
+
+    #tab-info.active {
+        display: grid;
+        grid-template-columns: minmax(320px, 0.78fr) minmax(0, 1.22fr);
+        gap: 18px;
+        align-items: start;
+    }
+
+    #tab-info.active .info-hero {
+        margin-top: 0;
+    }
+
+    #tab-info.active .info-layout {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 18px;
+    }
+
+    #tab-info.active .settings-card,
+    #tab-info.active .app-status-card,
+    #tab-info.active .data-actions-card,
+    #tab-info.active .info-card {
+        margin-top: 0;
+    }
+
+    #tab-info.active .footer-note {
+        grid-column: 1 / -1;
     }
 
     #tab-details.active {

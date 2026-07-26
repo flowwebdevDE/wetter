@@ -25,7 +25,7 @@
             <div class="location-shell">
                 <span id="header-loc-icon" class="location-marker"></span>
                 <div class="location-copy">
-                    <span class="location-label">Aktueller Ort</span>
+                    <span class="location-label">Ort</span>
                     <h1 id="placeName">Lade Wetter...</h1>
                     <div id="locationMeta" class="location-meta"></div>
                     <div id="header-date"></div>
@@ -64,17 +64,12 @@
                     </div>
                     <div id="weatherInsights" class="insight-grid"></div>
                     <div id="details" class="details-strip"></div>
-                    <div class="current-actions">
-                        <button id="saveDefaultBtn" class="secondary-btn">Favorit speichern</button>
-                        <button id="setDefaultBtn" class="secondary-btn subdued">Als Startort setzen</button>
-                    </div>
                 </div>
 
                 <div id="dailyOverview" class="card forecast-panel">
                     <div class="section-heading">
                         <div>
                             <h2>24-Stunden Überblick</h2>
-                            <p>Temperatur, Regen und Wind im Tagesverlauf.</p>
                         </div>
                         <span id="hourlyRange" class="section-meta"></span>
                     </div>
@@ -88,7 +83,6 @@
                     <div class="section-heading">
                         <div>
                             <h2>7-Tage-Trend</h2>
-                            <p>Maximalwerte, Tiefstwerte und Niederschlag im Vergleich.</p>
                         </div>
                     </div>
                     <div id="dailyForecastGrid"></div>
@@ -132,10 +126,9 @@
                 <div class="card favorites-manager">
                     <div class="section-heading">
                         <div>
-                            <h2>Favoriten verwalten</h2>
-                            <p>Gespeicherte Orte laden, als Startort setzen oder entfernen.</p>
+                            <h2>Favoriten</h2>
                         </div>
-                        <button id="addCurrentFavoriteBtn" class="secondary-action" type="button">Aktuellen Ort merken</button>
+                        <button id="addCurrentFavoriteBtn" class="secondary-action" type="button">Ort merken</button>
                     </div>
                     <div id="favoritesList" class="favorites-list"></div>
                 </div>
@@ -143,42 +136,141 @@
 
             <!-- TAB 5: INFO -->
             <section id="tab-info" class="tab-content">
-                <div class="card info-hero">
+                <div class="card info-hero liquid-panel">
                     <div id="info-app-icon" class="app-logo-large"></div>
-                    <h2>FlowWetter</h2>
-                    <span class="version-tag">Version 2.4.b1</span>
+                    <div>
+                        <h2>FlowWetter</h2>
+                        <span class="version-tag">Version 2.4.b1</span>
+                    </div>
+                    <div class="info-pills">
+                        <span>PWA</span>
+                        <span>Lokal</span>
+                        <span>Open-Meteo</span>
+                    </div>
                 </div>
 
-                <div class="card">
-                    <h3>Features</h3>
-                    <ul class="info-list">
-                        <li><span class="info-icon" id="info-icon-loc"></span> Präzise Standorterkennung & Suche</li>
-                        <li><span class="info-icon" id="info-icon-chart"></span> Interaktive Temperatur-Charts</li>
-                        <li><span class="info-icon" id="info-icon-sun"></span> Sonnenverlauf-Visualisierung</li>
-                        <li><span class="info-icon" id="info-icon-wind"></span> Wind- & Böenvorhersage</li>
-                        <li><span class="info-icon" id="info-icon-alert"></span> Frost- & UV-Warnungen</li>
-                        <li><span class="info-icon" id="info-icon-save"></span> Intelligentes Offline-Caching</li>
-                        <li><span class="info-icon" id="info-icon-mobile"></span> Mobile optimiert (Capacitor)</li>
-                    </ul>
-                </div>
+                <div class="info-layout">
+                    <div class="card settings-card liquid-panel">
+                        <div class="section-heading compact">
+                            <h3>Anzeige</h3>
+                        </div>
 
-                <div class="card">
-                    <h3>Technik & Datenschutz</h3>
-                    <ul class="info-list">
-                        <li><span class="info-icon" id="info-icon-privacy"></span> 100% Werbefrei & kein Tracking</li>
-                        <li><span class="info-icon" id="info-icon-tech"></span> Moderne PWA/Capacitor Technik</li>
-                    </ul>
-                    <p class="muted-copy">
-                        Ihre Privatsphäre ist uns wichtig: Es werden keine persönlichen Daten gesammelt oder geteilt. Die App nutzt moderne Web-Technologien für ein flüssiges Erlebnis ohne unnötigen Ballast.
-                    </p>
-                </div>
+                        <div class="setting-row">
+                            <span>
+                                <strong>Temperaturen mit Kommastelle</strong>
+                                <small id="temperatureStatus">Ganze Grad</small>
+                            </span>
+                            <div class="segmented-control" role="group" aria-label="Temperaturanzeige">
+                                <button id="tempModeRounded" type="button" data-temp-mode="rounded">21°</button>
+                                <button id="tempModeExact" type="button" data-temp-mode="exact">21,4°</button>
+                            </div>
+                        </div>
 
-                <div class="card">
-                    <h3>Datenquelle</h3>
-                    <p class="muted-copy">
-                        Wir nutzen die <strong>Open-Meteo API</strong> für weltweit präzise Wetterdaten – ohne Tracking und völlig werbefrei.
-                    </p>
-                    <a href="https://open-meteo.com/" target="_blank" class="info-link-btn">Open-Meteo Website</a>
+                        <div class="setting-row">
+                            <span>
+                                <strong>Wind</strong>
+                                <small id="windUnitStatus">km/h</small>
+                            </span>
+                            <div class="segmented-control" role="group" aria-label="Wind-Einheit">
+                                <button id="windUnitKmh" type="button" data-wind-unit="kmh">km/h</button>
+                                <button id="windUnitMs" type="button" data-wind-unit="ms">m/s</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card settings-card liquid-panel">
+                        <div class="section-heading compact">
+                            <h3>Oberfläche</h3>
+                        </div>
+
+                        <div class="setting-row">
+                            <span>
+                                <strong>Liquid Glass</strong>
+                                <small id="glassEffectStatus">Aktiv</small>
+                            </span>
+                            <div class="mode-grid" role="group" aria-label="Oberfläche">
+                                <button class="mode-card" type="button" data-glass-mode="glass">
+                                    <span class="mode-visual glass-sample" aria-hidden="true"></span>
+                                    <span><strong>Glas</strong><small>Liquid</small></span>
+                                </button>
+                                <button class="mode-card" type="button" data-glass-mode="clear">
+                                    <span class="mode-visual clear-sample" aria-hidden="true"></span>
+                                    <span><strong>Klar</strong><small>Flacher</small></span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="setting-row">
+                            <span>
+                                <strong>Sanfte Animationen</strong>
+                                <small id="motionStatus">Aktiv</small>
+                            </span>
+                            <div class="mode-grid" role="group" aria-label="Bewegung">
+                                <button class="mode-card" type="button" data-motion-mode="dynamic">
+                                    <span class="mode-visual motion-sample" aria-hidden="true"></span>
+                                    <span><strong>Dynamisch</strong><small>Weich</small></span>
+                                </button>
+                                <button class="mode-card" type="button" data-motion-mode="calm">
+                                    <span class="mode-visual calm-sample" aria-hidden="true"></span>
+                                    <span><strong>Ruhig</strong><small>Reduziert</small></span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card app-status-card liquid-panel">
+                        <div class="section-heading compact">
+                            <h3>Status</h3>
+                        </div>
+                        <div class="info-status-grid">
+                            <div class="status-tile">
+                                <span>Favoriten</span>
+                                <strong id="infoFavoritesCount">0</strong>
+                            </div>
+                            <div class="status-tile">
+                                <span>Startort</span>
+                                <strong id="infoDefaultLocation">Stuttgart</strong>
+                            </div>
+                            <div class="status-tile">
+                                <span>Cache</span>
+                                <strong id="infoCacheState">Bereit</strong>
+                            </div>
+                            <div class="status-tile">
+                                <span>Wind</span>
+                                <strong id="infoWindUnit">km/h</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card data-actions-card liquid-panel">
+                        <div class="section-heading compact">
+                            <h3>Daten</h3>
+                        </div>
+                        <div class="settings-actions">
+                            <button id="openFavoritesSettingsBtn" class="settings-action" type="button">Favoriten</button>
+                            <button id="clearCacheBtn" class="settings-action" type="button">Cache leeren</button>
+                            <button id="resetSettingsBtn" class="settings-action danger" type="button">Standardwerte</button>
+                        </div>
+                    </div>
+
+                    <div class="card info-card liquid-panel">
+                        <h3>Datenschutz</h3>
+                        <ul class="info-list">
+                            <li><span class="info-icon" id="info-icon-privacy"></span> Werbefrei</li>
+                            <li><span class="info-icon" id="info-icon-save"></span> Lokale Favoriten</li>
+                            <li><span class="info-icon" id="info-icon-mobile"></span> PWA-ready</li>
+                        </ul>
+                    </div>
+
+                    <div class="card info-card liquid-panel">
+                        <h3>Datenquelle</h3>
+                        <ul class="info-list">
+                            <li><span class="info-icon" id="info-icon-loc"></span> Standortsuche</li>
+                            <li><span class="info-icon" id="info-icon-chart"></span> Wetterdaten</li>
+                            <li><span class="info-icon" id="info-icon-alert"></span> Warnlage</li>
+                        </ul>
+                        <a href="https://open-meteo.com/" target="_blank" class="info-link-btn">Open-Meteo</a>
+                    </div>
                 </div>
 
                 <div class="footer-note">

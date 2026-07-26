@@ -68,7 +68,7 @@ async function renderDailyOverview(lat, lon, sunriseStr, sunsetStr) {
             <div class="mini-icon">${iconForCode(code, night)}</div>
             <div class="hour-temp">${formatTemp(data.hourly.temperature_2m[i])}</div>
             <div class="hour-meta ${rainLevel.tone}"><span>Regen</span><strong>${rainChance != null ? `${rainChance}%` : formatMetric(rain, " mm", 1)}</strong></div>
-            <div class="hour-meta ${windLevel.tone}"><span>${UI_ICONS.windArrow(windDeg)} Wind</span><strong>${formatMetric(windSpeed, " km/h")}</strong></div>
+            <div class="hour-meta ${windLevel.tone}"><span>${UI_ICONS.windArrow(windDeg)} Wind</span><strong>${formatWind(windSpeed)}</strong></div>
         `;
         grid.appendChild(hourDiv);
     }
